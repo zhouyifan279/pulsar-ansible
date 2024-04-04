@@ -1,3 +1,5 @@
+#! /bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -14,8 +16,6 @@
 # limitations under the License.
 ###
 
-
-#! /bin/bash
 
 source $(pwd)/setenv_automation.sh
 echo

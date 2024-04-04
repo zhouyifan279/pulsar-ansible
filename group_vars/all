@@ -19,8 +19,19 @@
 # General settings
 # -------------------------------------------
 #
+# Whehter to print out extra debug information while running the
+# ansible playbooks
 show_debug_msg: true
+
+# Whehter 'sudo' privelege is needed for the pulsar-ansible SSH user
+# to deploy and operate the Pulsar cluster.
 sudo_needed: true
+
+# This will impact the JVM heap size and direct memory size settings
+# for each deployed Pulsar server component.
+# - the production
+prod_jvm_setting: false
+
 
 # - System user and group for running Pulsar on remote server hosts
 pulsar_user: pulsar
@@ -55,12 +66,12 @@ openjdk_ver: 11
 # - DataStax LunaStreaming release
 pulsarLS_ver_main: "2.10"
 # pulsarLS_ver_secondary: "1.7"
-pulsarLS_ver_secondary: "2.2"
+pulsarLS_ver_secondary: "3.1"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
 # use "" (base) as the default 
-pulsarLS_bin_opt: ""
+pulsarLS_bin_opt: "all"
 pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS_bin_opt != '' %}{{ pulsarLS_bin_opt }}-{% endif %}{{ pulsarLS_ver }}-bin.tar.gz"
 
 
@@ -180,7 +191,6 @@ autorecovery_option: "integrated"
 # -------------------------------------------
 #
 # commong JVM settings that applies to all Pulsar server components
-prod_jvm_setting: true
 common_jvm_settings: |
   PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
   PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
@@ -282,9 +292,9 @@ fwrkr_super_user_roles:
 fwrkr_super_user_roles_list_str: "{{ fwrkr_super_user_roles | join(',') }}"
 
 # - Whether or not to skip generating Pulsar functions worker JWT token files on the local host
-skip_fwrkr_jwt_token_generation: false
+skip_fwrkr_jwt_token_generation: true
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
-skip_fwrkr_tls_certs_generatation: false
+skip_fwrkr_tls_certs_generatation: true
 
 ##
 # Pulsar functions worker server: signed certificate related settings

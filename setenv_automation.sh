@@ -1,3 +1,5 @@
+#! /bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -14,8 +16,6 @@
 # limitations under the License.
 ###
 
-
-#! /bin/bash
 
 ANSI_SSH_PRIV_KEY="~/.ssh/id_rsa_ymtest"
 ANSI_SSH_USER="automaton"

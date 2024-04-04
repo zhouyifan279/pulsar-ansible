@@ -1,3 +1,5 @@
+#! /usr/local/bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -14,8 +16,6 @@
 # limitations under the License.
 ###
 
-
-#! /usr/local/bin/bash
 
 ###
 # NOTE 1: the default MacOS /bin/bash version is 3.x and doesn't have the feature of 
