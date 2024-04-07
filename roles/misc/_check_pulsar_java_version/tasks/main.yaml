@@ -17,7 +17,7 @@
 
 ---
 - name: Get the installed Java version
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}java -version 2>&1 | awk -F '\"' '/version/ {print $2}'"
+  shell: "java -version 2>&1 | awk -F '\"' '/version/ {print $2}'"
   register: inst_java_ver
 - debug: msg="({{ srv_component }}) Installed Java Version - {{ inst_java_ver.stdout|trim }}"
   when: show_debug_msg|bool
