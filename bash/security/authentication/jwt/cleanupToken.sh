@@ -16,17 +16,22 @@
 # limitations under the License.
 ###
 
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/../../../../" &> /dev/null && pwd )
+JWT_STAGAING_DIR="${ANS_SCRIPT_HOMEDIR}/staging/security/authentication/jwt"
+
+echo
+
 usage() {
-   echo
    echo "Usage: cleanupUserJwtToken.sh [-h] -clstr <cluster_name> -host_type <srv_host_type> "
    echo "       -h : show usage info"
    echo "       -clst_name <cluster_name> : Pulsar cluster name" 
    echo "       -host_type <srv_host_type> : Pulsar server host type that needs to clean up JWT tokens (e.g. broker, functions_worker)"
-   echo
 }
 
 if [[ $# -eq 0 || $# -gt 4 ]]; then
    usage
+   echo
    exit 10
 fi
 
@@ -36,19 +41,21 @@ while [[ "$#" -gt 0 ]]; do
       -h) usage; exit 0 ;;
       -clst_name) pulsarClusterName="$2"; shift;;
       -host_type) srvHostType="$2"; shift ;;
-      *) echo "Unknown parameter passed: $1"; exit 20 ;;
+      *) echo "Unknown parameter passed: $1"; echo; exit 20 ;;
    esac
    shift
 done
 
-if [[ "${pulsarClusterName}" == ""  ]]; then
+if [[ -z "${pulsarClusterName// }" ]]; then
   echo "Pulsar cluster name can't be empty" 
+  echo
   exit 30
 fi
 
-if [[ "${srvHostType}" == ""  ]]; then
+if [[ -z "${srvHostType// }" ]]; then
   echo "[ERROR] Pulsar server host type can't be empty" 
+  echo
   exit 40
 fi
 
-rm -rf staging/token/${pulsarClusterName}/${srvHostType}s/*
+rm -rf ${JWT_STAGAING_DIR}/token/${pulsarClusterName}/${srvHostType}s/*

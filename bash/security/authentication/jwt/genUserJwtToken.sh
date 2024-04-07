@@ -23,30 +23,37 @@
 #
 #
 
-if [[ -z "${whichPulsar}" ]]; then
-    # Check if "pulsar" executable is available
-    whichPulsar=$(which pulsar)
-    if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
-        echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
-        exit 10
-    fi
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/../../../../" &> /dev/null && pwd )
+JWT_STAGAING_DIR="${ANS_SCRIPT_HOMEDIR}/staging/security/authentication/jwt"
+
+echo
+
+# Check if "pulsar" executable is available
+if [[ -z "${whichPulsar// }" ]]; then
+  whichPulsar=$(which pulsar)
+  if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
+    echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
+    echo
+    exit 10
+  fi
 fi 
+
 usage() {
-   echo
-   echo "Usage: genUserJwtToken.sh [-h] [-r] \
-                                   -clst_name <pulsar_cluster_name> \
-                                   -host_type <srv_host_type> \
-                                   -user_list <tokenUserList>"
-   echo "       -h   : show usage info"
-   echo "       [-r] : reuse existing token generation key pair if it already exists"
-   echo "       -clst_name <pulsar_cluster_name> : Pulsar cluster name"
-   echo "       -host_type <srv_host_type>: Pulsar server host type that needs to set up JWT tokens (e.g. broker, functions_worker)"
-   echo "       -user_list <tokenUserList> : User name list (comma separated) that need JWT tokens"
-   echo
+  echo "Usage: genUserJwtToken.sh [-h] [-r]"
+  echo "                          -clst_name <pulsar_cluster_name>"
+  echo "                          -host_type <srv_host_type>"
+  echo "                          -user_list <tokenUserList>"
+  echo "       -h   : show usage info"
+  echo "       [-r] : reuse existing token generation key pair if it already exists"
+  echo "       -clst_name <pulsar_cluster_name> : Pulsar cluster name"
+  echo "       -host_type <srv_host_type>: Pulsar server host type that needs to set up JWT tokens (e.g. broker, functions_worker)"
+  echo "       -user_list <tokenUserList> : User name list (comma separated) that need JWT tokens"
 }
 
 if [[ $# -eq 0 || $# -gt 7 ]]; then
    usage
+   echo
    exit 20
 fi
 
@@ -61,31 +68,35 @@ while [[ "$#" -gt 0 ]]; do
       -clst_name) pulsarClusterName="$2"; shift ;;
       -host_type) srvHostType="$2"; shift ;;
       -user_list) tokenUserNameList="$2"; shift ;;
-      *) echo "Unknown parameter passed: $1"; exit 25 ;;
+      *) echo "Unknown parameter passed: $1"; echo; exit 25 ;;
    esac
    shift
 done
 
-if [[ "${pulsarClusterName}" == ""  ]]; then
+if [[ -z "${pulsarClusterName// }" ]]; then
   echo "Pulsar cluster name can't be empty" 
+  echo
   exit 30
 fi
 
-if [[ "${srvHostType}" == ""  ]]; then
+if [[ -z "${srvHostType// }" ]]; then
   echo "[ERROR] Pulsar server host type can't be empty" 
+  echo
   exit 40
 fi
 
-if [[ "${tokenUserNameList=""}" == ""  ]]; then
+if [[ -z "${tokenUserNameList// }" ]]; then
   echo "Token user name list can't be empty" 
+  echo
   exit 50
 fi
 
 PRIV_KEY="${srvHostType}_jwt_private.key"
 PUB_KEY="${srvHostType}_jwt_public.key"
 
-mkdir -p staging
-cd staging
+ORG_PWD=$(pwd)
+mkdir -p ${JWT_STAGAING_DIR}
+cd ${JWT_STAGAING_DIR}
 
 mkdir -p key token/${pulsarClusterName}/${srvHostType}s
 
@@ -115,6 +126,7 @@ for userName in $(echo ${tokenUserNameList} | sed "s/,/ /g"); do
       --subject ${userName} > ${CUR_DIR}/token/${pulsarClusterName}/${srvHostType}s/${userName}.jwt
 done
 
-cd ..
+cd ${ORG_PWD}
+echo
 
 exit 0

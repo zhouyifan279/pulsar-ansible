@@ -16,11 +16,15 @@
 
 
 ---
-# Functions worker base configuration (non-security)
-- include_role:
-    name: pulsar/functions_worker/fwrkr_config/_base
+- name: Get the installed Java version
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}java -version 2>&1 | awk -F '\"' '/version/ {print $2}'"
+  register: inst_java_ver
+- debug: msg="({{ srv_component }}) Installed Java Version - {{ inst_java_ver.stdout|trim }}"
+  when: show_debug_msg|bool
 
-# Functions worker security related configuration
-- name: ({{ srv_component }}) base configuration (security) setup
-  include_role:
-    name: pulsar/functions_worker/fwrkr_config/_security
+- name: For Pulsar 3.0+, JDK 17 is required
+  assert:
+    that: 
+      - "pulsarLS_ver is version('3.0', '>=')"
+      - "inst_java_ver.stdout is version('17.0', '>=')"
+    fail_msg: "This installation is for Pulsar 3.0+ and it requires JDK 17!"

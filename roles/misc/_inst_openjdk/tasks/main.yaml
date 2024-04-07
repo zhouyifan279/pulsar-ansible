@@ -29,7 +29,7 @@
     state: present
     update_cache: yes
   with_items:
-    - python-apt
+    - python3-apt
     - openjdk-{{ openjdk_ver }}-jdk
   tags:
     - jdk_install

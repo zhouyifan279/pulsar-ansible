@@ -18,9 +18,6 @@
 ---
 #########################
 # Common broker configuration settings
-# that are applicable to both to the following versions:
-# - 2.8(.*)
-# - 2.10(.*)
 # -----------------------
 - name: Modify Pulsar broker config file for mandatory settings
   lineinfile:
@@ -28,8 +25,9 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: "^zookeeperServers=", line: "zookeeperServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
-    - { regexp: "^configurationStoreServers=", line: "configurationStoreServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^metadataStoreUrl=", line: "metadataStoreUrl={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    # Make sure "configurationMetadataStoreUrl" is not set which falls back to the same value as "metadataStoreUrl"
+    - { regexp: "^configurationMetadataStoreUrl=", line: "configurationMetadataStoreUrl=" }
     - { regexp: "^clusterName=", line: "clusterName={{ cluster_name }}" }
     - { regexp: "^brokerServicePort=", line: "brokerServicePort={{ broker_svc_port }}" }
     - { regexp: "^webServicePort=", line: "webServicePort={{ web_svc_port }}" }
@@ -65,6 +63,16 @@
         line: "bookkeeperClientEnforceMinNumRacksPerWriteQuorum={{ enforceMinNumRackPerWQ|lower }}" }
   when: config_rackAwareness is defined and config_rackAwareness|bool
 
+- name: Modify broker side filtering config settings, if needed
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^entryFilterNames=", line: "entryFilterNames=jms" }
+    - { regexp: "^entryFiltersDirectory=", line: "entryFiltersDirectory={{ tgt_msg_filter_package_dir }}" }
+  when: enable_srvside_msg_filtering|bool
+
 - name: Modify Pulsar broker config file for misc settings
   lineinfile:
     path: "{{ broker_conf_file }}"
@@ -72,3 +80,24 @@
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_broker_config_dict) }}"
+
+- name: Comment out deprecated broker config settings
+  replace:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    # Deprecated since 2.10
+    - { regexp: '(^zookeeperServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^configurationStoreServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperSessionTimeoutMillis=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperOperationTimeoutSeconds=)(.*)$', replace: '#\1' }
+    - { regexp: '(^zooKeeperCacheExpirySeconds=)(.*)$', replace: '#\1' }
+    - { regexp: '(^backlogQuotaDefaultLimitGB=)(.*)$', replace: '#\1' }
+    - { regexp: '(^saslJaasBrokerSectionName=)(.*)$', replace: '#\1' }
+    # Deprecated since 2.8
+    - { regexp: '(^subscriptionKeySharedEnable=)(.*)$', replace: '#\1' }
+    - { regexp: '(^tlsEnabled=)(.*)$', replace: '#\1' }
+    - { regexp: '(^globalZookeeperServers=)(.*)$', replace: '#\1' }
+    - { regexp: '(^replicationTlsEnabled=)(.*)$', replace: '#\1' }
+    - { regexp: '(^brokerServicePurgeInactiveFrequencyInSeconds=)(.*)$', replace: '#\1' }

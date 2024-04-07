@@ -84,7 +84,7 @@ usage() {
    echo "                                -hostDns <whehter_using_dnsname>"
    echo "       -h : Show usage info"
    echo "       -clstrName : Pulsar cluster name"
-   echo "       -hostDns   : Whehter using host DNS name (true) or host IP (faslse)"
+   echo "       -hostDns   : Whehter using host DNS name (true) or host IP (false)"
    echo
 }
 

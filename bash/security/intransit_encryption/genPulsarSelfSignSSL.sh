@@ -23,16 +23,32 @@
 #
 #
 
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/../../../" &> /dev/null && pwd )
+TLS_STAGAING_DIR="${ANS_SCRIPT_HOMEDIR}/staging/security/intransit_encryption"
 
-# Check if "pulsar" executable is available
-whichOpenssl=$(which openssl)
-if [[ "${whichOpenssl}" == "" || "${whichOpenssl}" == *"not found"* ]]; then
-  echo "Can't find \"openssl\" executable which is necessary to create TLS certificates"
-  exit 10
+echo
+
+# Check if "openssl" executable is available
+if [[ -z "${whichOpenssl// }" ]]; then
+  whichOpenssl=$(which openssl)
+  if [[ "${whichOpenssl}" == "" || "${whichOpenssl}" == *"not found"* ]]; then
+    echo "Can't find \"openssl\" executable which is necessary to create TLS certificates"
+    echo
+    exit 10
+  fi
+fi
+
+if [[ -z "${whichWget// }" ]]; then
+  whichWget=$(which wget)
+  if [[ "${whichWget}" == "" || "${whichWget}" == *"not found"* ]]; then
+    echo "Can't find \"wget\" executable which is necessary to download openssl.cnf file"
+    echo
+    exit 15
+  fi
 fi
 
 usage() {
-   echo
    echo "Usage: genPulsarSelfSignSSL.sh [-h] [-d] [-r] \\"
    echo "                               -clst_name <pulsar_cluster_name> \\"
    echo "                               -host_type <srv_host_type> \\"
@@ -53,11 +69,11 @@ usage() {
    echo "       [-ca_cert_expr_days <rootCertExpDays>] : the expiration days of the self-signed root CA certificate (default 10 years)"
    echo "       [-srv_cert_expr_days <srvCertExpDays> : the expiration days of the signed Pulsar server certificate (default 1 year)"
    echo "       [-certSubjLineStr <certificate_subject_line_string>] : the subject line string of the certificate"
-   echo
 }
 
 if [[ $# -eq 0 || $# -gt 18 ]]; then
    usage
+   echo
    exit 20
 fi
 
@@ -88,35 +104,37 @@ while [[ "$#" -gt 0 ]]; do
       -ca_cert_expr_days) rootCertExpDays="$2"; shift;;
       -srv_cert_expr_days) srvCertExpDays="$2"; shift;;
       -certSubjLineStr) certSubjLineStr="$2"; shift;;
-      *) echo "Unknown parameter passed: $1"; exit 30 ;;
+      *) echo "Unknown parameter passed: $1"; echo; exit 30 ;;
    esac
    shift
 done
 
-echo
-
-if [[ "${pulsarClusterName// }" == ""  ]]; then
+if [[ -z "${pulsarClusterName// }"  ]]; then
   echo "[ERROR] Pulsar cluster name can't be empty" 
   exit 40
 fi
 
-if [[ "${srvHostType// }" == ""  ]]; then
+if [[ -z "${srvHostType// }"  ]]; then
   echo "[ERROR] Pulsar server host type can't be empty" 
+  echo
   exit 50
 fi
 
-if [[ "${srvHostListStr// }" == ""  ]]; then
+if [[ -z "${srvHostListStr// }"  ]]; then
   echo "[ERROR] Pulsar server host list string (comma separated) can't be empty" 
+  echo
   exit 60
 fi
 
-if [[ "${caKeyPasswd// }" == ""  ]]; then
+if [[ -z "${caKeyPasswd// }"  ]]; then
   echo "[ERROR] The password of the self-signed root CA key can't be empty" 
+  echo
   exit 70
 fi
 
-if [[ "${srvKeyPasswd// }" == ""  ]]; then
+if [[ -z "${srvKeyPasswd// }"  ]]; then
   echo "[ERROR] The password of the Pulsar server key can't be empty" 
+  echo
   exit 80
 fi
 
@@ -136,8 +154,9 @@ if [[ "${certSubjLineStr// }" == ""  ]]; then
   certSubjLineStr="${DFT_certSubjLineStr}"
 fi
 
-mkdir -p staging
-cd staging
+ORIG_PWD=$(pwd)
+mkdir -p ${TLS_STAGAING_DIR}
+cd ${TLS_STAGAING_DIR}
 
 mkdir -p private crl newcerts certs/${pulsarClusterName}/${srvHostType}s
 chmod 700 private/
@@ -147,19 +166,16 @@ echo 1000 > serial
 stepCnt=0
 
 # Check if openssl.cnf file exists locally. If not, download it
-if [[ ! -f "../openssl.cnf" ]]; then
+if [[ ! -f "${ANS_SCRIPT_HOMEDIR}/bash/security/intransit_encryption/openssl.cnf" ]]; then
    forceDownload=1
 else
-   cp ../openssl.cnf .
+  if [[ ${forceDownload} -eq 0 ]]; then
+    cp ${ANS_SCRIPT_HOMEDIR}/bash/security/intransit_encryption/openssl.cnf .
+  fi
 fi
+ 
 
 if [[ ${forceDownload} -eq 1 ]]; then
-  whichWget=$(which wget)
-  if [[ "${whichWget}" == "" || "${whichWget}" == *"not found"* ]]; then
-    echo "Can't find \"wget\" executable which is necessary to download openssl.cnf file"
-    exit 90
-  fi
-
   echo
   stepCnt=$((stepCnt+1))
   echo "== STEP ${stepCnt} :: Download openssl.cnf file =="
@@ -254,7 +270,8 @@ for srvHost in $(echo $srvHostListStr | sed "s/,/ /g"); do
    echo
 done
 
-cd ..
+cd ${ORIG_PWD}
+echo
 
 exit 0
 

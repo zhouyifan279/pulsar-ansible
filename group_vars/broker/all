@@ -104,10 +104,10 @@ msg_filter_pkg_download_url: "{{ msg_filter_pkg_download_url_base }}/{{ msg_filt
 #     change the boolean value as starting with Uppercase (e.g. True or False)
 # 
 misc_broker_config_dict: {
-  forceDeleteTenantAllowed: 'false'             # default false
-  , forceDeleteNamespaceAllowed: 'false'        # default false
-  , allowAutoTopicCreation: 'false'             # default false
-  , allowAutoSubscriptionCreation: 'false'      # default false
+  forceDeleteTenantAllowed: 'true'             # default false
+  , forceDeleteNamespaceAllowed: 'true'        # default false
+  , allowAutoTopicCreation: 'true'             # default false
+  , allowAutoSubscriptionCreation: 'true'      # default false
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
@@ -156,4 +156,7 @@ misc_broker_config_dict: {
   #, managedLedgerMinimumBacklogCursorsForCaching: 0
   #, managedLedgerMinimumBacklogEntriesForCaching: 1000
   #, managedLedgerMaxBacklogBetweenCursorsForCaching: 1000
+  
+  , allowAutoTopicCreationType: "partitioned"
+  , brokerEntryMetadataInterceptors: "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor"
 }

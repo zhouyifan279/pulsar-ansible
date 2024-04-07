@@ -1,0 +1,58 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+#########################
+# Broker configuration settings for kop
+# 
+# -----------------------
+- name: Modify Pulsar broker config file for KOP settings, non-security related
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^messagingProtocols=", line: "messagingProtocols=kafka" }
+    # Make sure "configurationMetadataStoreUrl" is not set which falls back to the same value as "metadataStoreUrl"
+    - { regexp: "^protocolHandlerDirectory=", line: "protocolHandlerDirectory=./protocols" }
+    - { regexp: "^kopSchemaRegistryEnable=", line: "kopSchemaRegistryEnable=true" }
+    - { regexp: "^kopSchemaRegistryPort=", line: "kopSchemaRegistryPort={{ kop_schema_registry_port }}" }
+    - { regexp: "^kopSchemaRegistryEnableTls=", line: "kopSchemaRegistryEnableTls=true" }
+    - { regexp: "^kafkaTransactionCoordinatorEnabled=", line: "kafkaTransactionCoordinatorEnabled=true"}
+    - { regexp: "^kafkaListeners=", line: "kafkaListeners={{ kafka_listening_prottocol }}://0.0.0.0:{{ kafka_listening_port }}" }
+    - { regexp: "^kafkaAdvertisedListeners=", line: "kafkaAdvertisedListeners={{ kafka_listening_prottocol }}://{{ prviate_ip }}:{{ kafka_listening_port }}" }
+
+- name: Modify Pulsar broker config file for KOP settings, authN security related
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^saslAllowedMechanisms=", line: "saslAllowedMechanisms=PLAIN" }
+  when: enable_brkr_authNZ is defined and enable_brkr_authNZ|bool
+
+- name: Modify Pulsar broker config file for KOP settings, TLS security related
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^kopSslKeystoreLocation=", line: "kopSslKeystoreLocation={{ tgt_tls_dest_homedir }}/server/{{ srv_cert_name }}.jks" }
+    - { regexp: "^kopSslKeystorePassword=", line: "kopSslKeystorePassword={{ brkr_keystore_password }}" }
+    - { regexp: "^kopSslTruststoreLocation=", line: "kopSslTruststoreLocation={{ tgt_tls_dest_homedir }}/rootca/{{ srv_component }}_{{ public_cacert_name }}.jks" }
+    - { regexp: "^kopSslTruststorePassword=", line: "kopSslTruststorePassword={{ rootca_truststore_password }}" } 
+  when: enable_brkr_tls is defined and enable_brkr_tls|bool

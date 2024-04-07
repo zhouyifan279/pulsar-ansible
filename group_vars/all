@@ -61,17 +61,16 @@ ssh_user_in_pulsar_group: true
 # -------------------------------------------
 #
 install_jdk: false
-openjdk_ver: 11
+openjdk_ver: 17
 
 # - DataStax LunaStreaming release
-pulsarLS_ver_main: "2.10"
-# pulsarLS_ver_secondary: "1.7"
-pulsarLS_ver_secondary: "3.1"
+pulsarLS_ver_main: "3.1"
+pulsarLS_ver_secondary: "3.0"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
 # use "" (base) as the default 
-pulsarLS_bin_opt: "all"
+pulsarLS_bin_opt: ""
 pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS_bin_opt != '' %}{{ pulsarLS_bin_opt }}-{% endif %}{{ pulsarLS_ver }}-bin.tar.gz"
 
 
@@ -180,10 +179,10 @@ local_collected_srvfiles_homedir: collected_srv_files
 # - disabled   : disable auto-recovery daemon 
 # - integrated : auto-recovery daemon as part of bookkeeper process
 # - dedicated  : dedicated auto-recovery daemon process on [sep]arated hosts from bookie hosts
-#   (NOTE: Does NOT support having auto-recovery and bookkeeper are separate processes sharing the same host)
+#   (NOTE: Does NOT support having auto-recovery and bookkeeper being separate processes but sharing the same host)
 # -------------------------------------------
-autorecovery_option: "integrated"
-# autorecovery_option: "dedicated"
+# autorecovery_option: "integrated"
+autorecovery_option: "dedicated"
 
 
 #
@@ -227,6 +226,8 @@ public_cacert_name: "ca.cert.pem"
 rootca_cert_expire_days: 3650
 # - self singed root CA private key password
 rootca_key_password: "MyRootCACertPass"
+# - truststore password
+rootca_truststore_password: "MyTrustStorePass"
 
 ##
 # - common subject line in the generated certificate
@@ -272,6 +273,8 @@ skip_brkr_tls_certs_generatation: false
 brkr_cert_expire_days: 365
 # - (broker) server private key expiry days
 brkr_key_password: "MyBrkrSrvCertPass"
+# - (broker) keystore password
+brkr_keystore_password: "MyBrkrKeyStorePass"
 
 #
 # >>> Functions worker related security: JWT token and in-transit TLS encryption
@@ -279,9 +282,9 @@ brkr_key_password: "MyBrkrSrvCertPass"
 # TBD/NOTE: enabling functions worker security still has some issues. Do NOT enable them for now!
 #
 # - Wether or not to enable Pulsar functions worker JWT authentication and authorization
-enable_fwrkr_authNZ: false
+enable_fwrkr_authNZ: true
 # - Whether or not to enable Pulsar functions worker In-Transit TLS encryption
-enable_fwrkr_tls: false
+enable_fwrkr_tls: true
 
 enable_fwrkr_security: "{{ (enable_fwrkr_authNZ is defined and enable_fwrkr_authNZ|bool) or (enable_fwrkr_tls is defined and enable_fwrkr_tls|bool) }}"
 
@@ -292,9 +295,9 @@ fwrkr_super_user_roles:
 fwrkr_super_user_roles_list_str: "{{ fwrkr_super_user_roles | join(',') }}"
 
 # - Whether or not to skip generating Pulsar functions worker JWT token files on the local host
-skip_fwrkr_jwt_token_generation: true
+skip_fwrkr_jwt_token_generation: false
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
-skip_fwrkr_tls_certs_generatation: true
+skip_fwrkr_tls_certs_generatation: false
 
 ##
 # Pulsar functions worker server: signed certificate related settings
@@ -328,3 +331,14 @@ enable_ac_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bo
 # Ansible controller node specific settings
 #
 pulsar_controller_node_bin: "{{ tgt_pulsar_inst_dir }}/bin/pulsar"    
+
+##
+# Suppot for other protocols
+#
+# NOTE: enabling this requires `pulsarLS_bin_opt: "all"` in the settings
+enable_kop: false
+
+kafka_listening_prottocol: "${% if enable_brkr_authNZ is defined and enable_brkr_authNZ|bool %}SASL_PLAINTEXT{% else %}PLAINTEXT{% endif %}"
+
+kop_schema_registry_port: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}8091{% else %}8081{% endif %}"
+kafka_listening_port: "{% if enable_brkr_tls is defined and enable_brkr_tls|bool %}9093{% else %}9092{% endif %}"
