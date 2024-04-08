@@ -64,5 +64,4 @@ rm -rf  \
   ${TLS_STAGAING_DIR}/newcerts/* \
   ${TLS_STAGAING_DIR}/crl/* \
   ${TLS_STAGAING_DIR}/${srvHostType}_openssl.cnf \
-  ${TLS_STAGAING_DIR}/private/${srvHostType}* \
-  ${TLS_STAGAING_DIR}/certs/${pulsarClusterName}/${srvHostType}s/*
+  ${TLS_STAGAING_DIR}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}*

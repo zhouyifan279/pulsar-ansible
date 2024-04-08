@@ -108,6 +108,7 @@
 - hosts: localhost
   connection: local
   vars:
+    cleanLocalSecStaging: "true"
     showLocalCmdOutput: true
     srv_component: 'adminConsole'
     srv_host_list: "{{ groups['adminConsole'] | map('extract', hostvars, ['private_ip']) | join(',') if srv_component in groups else None }}"

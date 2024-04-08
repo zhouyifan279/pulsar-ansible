@@ -80,11 +80,11 @@ debugMsg "validDeployStatusListStr=${validDeployStatusListStr}"
 usage() {
    echo
    echo "Usage: buildAnsiHostInvFile.sh [-h]"
-   echo "                                -clstrName <cluster_name>"
+   echo "                                -clst_name <cluster_name>"
    echo "                                -hostDns <whehter_using_dnsname>"
    echo "       -h : Show usage info"
-   echo "       -clstrName : Pulsar cluster name"
-   echo "       -hostDns   : Whehter using host DNS name (true) or host IP (false)"
+   echo "       -clst_name : Pulsar cluster name"
+   echo "       -host_dns  : Whehter using host DNS name (true) or host IP (false)"
    echo
 }
 
@@ -96,8 +96,8 @@ fi
 while [[ "$#" -gt 0 ]]; do
    case $1 in
       -h) usage; exit 0 ;;
-      -clstrName) clstrName=$2; shift ;;
-      -hostDns) hostDns=$2; shift ;;
+      -clst_name) clstrName=$2; shift ;;
+      -host_dns) hostDns=$2; shift ;;
       *) echo "[ERROR] Unknown parameter passed: $1"; exit 20 ;;
    esac
    shift
