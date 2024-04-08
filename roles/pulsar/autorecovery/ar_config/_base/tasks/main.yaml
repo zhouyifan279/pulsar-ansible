@@ -35,7 +35,7 @@
 
 - name: Comment out deprecated auto recovery settings
   replace:
-    path: "{{ bookkeeper_conf_file }}"
+    path: "{{ autorecovery_conf_file }}"
     regexp: "{{ item.regexp }}"
     replace: "{{ item.replace }}"
   with_items:
