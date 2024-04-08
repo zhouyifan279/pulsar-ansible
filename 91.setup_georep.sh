@@ -1,3 +1,5 @@
+#! /bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -15,8 +17,6 @@
 ###
 
 
-#! /bin/bash
-
 DEBUG=false
 
 #
@@ -30,10 +30,9 @@ DEBUG=false
 #
 #
 
-
 usage() {
    echo
-   echo "Usage: 99.setup_georep_2region.sh [-h]"
+   echo "Usage: 91.setup_georep_2region.sh [-h]"
    echo "                                  -ansiHostInvent1 <host_inventory_file1>"
    echo "                                  -ansiPrivKey1 <ansi_private_key1>"
    echo "                                  -ansiSshUser1 <ansi_ssh_user1>"

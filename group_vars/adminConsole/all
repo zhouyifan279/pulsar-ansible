@@ -20,7 +20,7 @@
 # -------------------------------------------
 #
 # - AdminConsole release
-adminConsole_ver: "2.1.3"
+adminConsole_ver: "2.2.0"
 adminConsole_bin_name: "pulsar-admin-console-{{ adminConsole_ver }}.tar.gz"
 
 # - Node.js (needed by AdminConsole)

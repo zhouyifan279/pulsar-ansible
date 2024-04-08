@@ -123,7 +123,7 @@ misc_bookie_config_dict: {
   , logSizeLimit: 1073741824        ## for large disk capacity, use the default value
 
   # - Other performance related settings 
-  , verifyMetadataOnGC: 'true'
+  , verifyMetadataOnGC: 'true'    # default false
 
   # - Back Pressure
   , maxPendingReadRequestsPerThread: 10000

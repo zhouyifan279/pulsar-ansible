@@ -1,0 +1,31 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+- name: Get the process IDs of the specified server process
+  shell: "pgrep {{ srv_process_name }}"
+  ignore_errors: yes
+  register: pids_of_server
+- debug: msg="pids_of_server - {{ pids_of_server }}"
+  when: show_debug_msg|bool
+
+- name: Kill the process IDs 
+  shell: "kill -TERM {{ item }}"
+  with_items:
+    - "{{ pids_of_server['stdout_lines'] }}"
+  ignore_errors: yes
+  when: not pids_of_server['failed'] and pids_of_server['stdout_lines']|length > 0

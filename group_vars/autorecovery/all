@@ -1,4 +1,4 @@
-  ###
+###
 # Copyright DataStax, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 
 
 #
-#  Bookkeeper specific settings
+#  Autorecovery/Bookkeeper specific settings
 # -------------------------------------------
 #
 autorecovery_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/bookkeeper.conf"

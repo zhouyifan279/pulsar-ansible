@@ -181,6 +181,7 @@ local_collected_srvfiles_homedir: collected_srv_files
 # - dedicated  : dedicated auto-recovery daemon process on [sep]arated hosts from bookie hosts
 #   (NOTE: Does NOT support having auto-recovery and bookkeeper being separate processes but sharing the same host)
 # -------------------------------------------
+# autorecovery_option: "disabled"
 # autorecovery_option: "integrated"
 autorecovery_option: "dedicated"
 
@@ -329,6 +330,7 @@ enable_ac_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bo
 # Ansible controller node specific settings
 #
 pulsar_controller_node_bin: "{{ tgt_pulsar_inst_dir }}/bin/pulsar"    
+
 
 ##
 # Suppot for other protocols

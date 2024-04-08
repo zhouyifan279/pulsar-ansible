@@ -1,0 +1,40 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+- name: ({{ srv_component }}) If needed, clean up the local security file staging folder
+  shell: |
+    cd bash/security/intransit_encryption; 
+    ./cleanupCert.sh \
+      -clst_name {{ cluster_name}} \
+      -host_type {{ srv_component }}
+  when: cleanLocalSecStaging is defined and cleanLocalSecStaging|bool
+- name: ({{ srv_component }}) If TLS is enabled, call a bash script to create TLS certificate files
+  shell: |
+    cd bash/security/intransit_encryption; 
+    ./genPulsarSelfSignSSL.sh -r \
+      -clst_name {{ cluster_name }} \
+      -host_type {{ srv_component }} \
+      -host_list {{ srv_host_list }} \
+      -ca_key_pwd {{ rootca_key_password }} \
+      -srv_key_pwd {{ srv_key_password }} \
+      -ca_cert_expr_days {{ rootca_cert_expire_days }} \
+      -srv_cert_expr_days {{ srv_cert_expire_days }} \
+      -certSubjLineStr {{ cert_subj_line }}
+  register: tlsCertShell
+- debug: msg="({{ srv_component }}) tlsCertShell.failed - {{ tlsCertShell.failed }}"
+  when: show_debug_msg|bool and showLocalCmdOutput|bool

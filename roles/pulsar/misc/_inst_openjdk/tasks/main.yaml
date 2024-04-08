@@ -1,0 +1,48 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+- name: Print ansible_distribution fact on managed hosts
+  debug:
+    msg: Managed hosts running on {{ ansible_facts['distribution'] }}
+  tags:
+    - jdk_install
+    
+# Ubuntu/APT installation
+- name: Install Python and OpenJDK Java on Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - python3-apt
+    - openjdk-{{ openjdk_ver }}-jdk
+  tags:
+    - jdk_install
+  when: ansible_facts['distribution'] == "Ubuntu"
+    
+# RedHat/DNF installation
+- name: Install Python 3.8 and OpenJDK Java on RedHat
+  dnf:
+    name:
+      - python38
+      - java-{{ openjdk_ver }}-openjdk
+    state: present
+    update_cache: yes
+  tags:
+    - jdk_install
+  when: ansible_facts['distribution'] == "RedHat"
