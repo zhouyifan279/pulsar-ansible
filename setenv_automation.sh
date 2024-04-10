@@ -17,8 +17,8 @@
 ###
 
 
-ANSI_SSH_PRIV_KEY="~/.ssh/id_rsa_ymtest"
-ANSI_SSH_USER="automaton"
+ANSI_SSH_PRIV_KEY="</path/to/your/private/key>"
+ANSI_SSH_USER="<your-ssh-user>"
 ANSI_DEBUG_LVL="-v"
 
-CLUSTER_NAME="MyCluster1"
+CLUSTER_NAME="<your-cluster-name>"
