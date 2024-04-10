@@ -88,18 +88,12 @@ usage() {
   echo "                                -hostDns <whehter_using_dnsname>"
   echo "       -h : Show usage info"
   echo "       -clstrName : Pulsar cluster name"
-  echo "       -hostDns  : Whehter using host DNS name (true) or host IP (false)"
+  echo "       -hostDns   : True when host DNS is used; false when host IP is used."
 }
-
-if [[ $# -eq 0 || $# -gt 4 ]]; then
-  usage
-  echo
-  exit 10
-fi
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-    -h) usage; exit 0 ;;
+    -h) usage; echo; exit 10 ;;
     -clstrName) clstrName=$2; shift ;;
     -hostDns) hostDns=$2; shift ;;
     *) echo "[ERROR] Unknown parameter passed: $1"; echo; exit 20 ;;
@@ -250,7 +244,7 @@ for pulsarSrv in "${validPulsarSrvHostTypeArr[@]}"; do
 done
 outputMsg ""
 outputMsg "[pulsarServer:vars]"
-outputMsg "srv_component_list=[\"$(echo ${validPulsarSrvHostTypeListStr} | sed -e 's/\s\+/\", \"/g')\"]"
+outputMsg "srv_component_list=[\"$(echo ${validPulsarSrvHostTypeListStr//${IFS:0:1}/\",\"})\"]"
 outputMsg ""
 
 for hostType in "${validHostTypeArr[@]}"; do

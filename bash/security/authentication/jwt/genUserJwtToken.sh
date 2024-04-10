@@ -35,7 +35,7 @@ if [[ -z "${whichPulsar// }" ]]; then
   if [[ "${whichPulsar}" == "" || "${whichPulsar}" == *"not found"* ]]; then
     echo "Can't find \"pulsar\" executable which is necessary to create JWT tokens"
     echo
-    exit 10
+    exit 1
   fi
 fi 
 
@@ -51,24 +51,18 @@ usage() {
   echo "       -user_list <tokenUserList> : User name list (comma separated) that need JWT tokens"
 }
 
-if [[ $# -eq 0 || $# -gt 7 ]]; then
-   usage
-   echo
-   exit 20
-fi
-
 reuseKey=0
 srvHostType=""
 pulsarClusterName=""
 tokenUserNameList=""
 while [[ "$#" -gt 0 ]]; do
    case $1 in
-      -h) usage; exit 0 ;;
+      -h) usage; echo; exit 10 ;;
       -r) reuseKey=1; ;;
       -clst_name) pulsarClusterName="$2"; shift ;;
       -host_type) srvHostType="$2"; shift ;;
       -user_list) tokenUserNameList="$2"; shift ;;
-      *) echo "Unknown parameter passed: $1"; echo; exit 25 ;;
+      *) echo "Unknown parameter passed: $1"; echo; exit 20 ;;
    esac
    shift
 done

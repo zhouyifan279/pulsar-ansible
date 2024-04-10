@@ -35,7 +35,7 @@ if [[ -z "${whichOpenssl// }" ]]; then
   if [[ "${whichOpenssl}" == "" || "${whichOpenssl}" == *"not found"* ]]; then
     echo "Can't find \"openssl\" executable which is necessary to create TLS certificates"
     echo
-    exit 10
+    exit 1
   fi
 fi
 
@@ -44,7 +44,7 @@ if [[ -z "${whichWget// }" ]]; then
   if [[ "${whichWget}" == "" || "${whichWget}" == *"not found"* ]]; then
     echo "Can't find \"wget\" executable which is necessary to download openssl.cnf file"
     echo
-    exit 15
+    exit 2
   fi
 fi
 
@@ -71,12 +71,6 @@ usage() {
    echo "       [-certSubjLineStr <certificate_subject_line_string>] : the subject line string of the certificate"
 }
 
-if [[ $# -eq 0 || $# -gt 18 ]]; then
-   usage
-   echo
-   exit 20
-fi
-
 DFT_rootCertExpDays=3650
 DFT_srvCertExpDays=365
 DFT_certSubjLineStr="/C=US/ST=TX/L=Dallas/O=mytest.com"
@@ -93,7 +87,7 @@ srvCertExpDays=
 certSubjLineStr=
 while [[ "$#" -gt 0 ]]; do
    case $1 in
-      -h) usage; exit 0 ;;
+      -h) usage; echo; exit 10 ;;
       -d) forceDownload=1; ;;
       -r) reuseCa=1; ;;
       -clst_name) pulsarClusterName="$2"; shift ;;
@@ -104,38 +98,38 @@ while [[ "$#" -gt 0 ]]; do
       -ca_cert_expr_days) rootCertExpDays="$2"; shift;;
       -srv_cert_expr_days) srvCertExpDays="$2"; shift;;
       -certSubjLineStr) certSubjLineStr="$2"; shift;;
-      *) echo "Unknown parameter passed: $1"; echo; exit 30 ;;
+      *) echo "Unknown parameter passed: $1"; echo; exit 20 ;;
    esac
    shift
 done
 
 if [[ -z "${pulsarClusterName// }"  ]]; then
   echo "[ERROR] Pulsar cluster name can't be empty" 
-  exit 40
+  exit 30
 fi
 
 if [[ -z "${srvHostType// }"  ]]; then
   echo "[ERROR] Pulsar server host type can't be empty" 
   echo
-  exit 50
+  exit 40
 fi
 
 if [[ -z "${srvHostListStr// }"  ]]; then
   echo "[ERROR] Pulsar server host list string (comma separated) can't be empty" 
   echo
-  exit 60
+  exit 50
 fi
 
 if [[ -z "${caKeyPasswd// }"  ]]; then
   echo "[ERROR] The password of the self-signed root CA key can't be empty" 
   echo
-  exit 70
+  exit 60
 fi
 
 if [[ -z "${srvKeyPasswd// }"  ]]; then
   echo "[ERROR] The password of the Pulsar server key can't be empty" 
   echo
-  exit 80
+  exit 70
 fi
 
 re='^[0-9]+$'
@@ -200,20 +194,20 @@ if ! [[ -f private/${SRV_ROOT_CA_KEY} && -f certs/${SRV_ROOT_CA_CERT} && $reuseC
   echo "== STEP ${stepCnt} :: Create a root key and a X.509 certificate for self-signing purpose =="
   echo "   >> (${stepCnt}.1) Generate the self-signed root CA private key file"
   $whichOpenssl genrsa -aes256 \
-          -passout pass:${caKeyPasswd} \
-          -out ${CA_HOME}/private/${SRV_ROOT_CA_KEY} \
-          4096
+    -passout pass:${caKeyPasswd} \
+    -out ${CA_HOME}/private/${SRV_ROOT_CA_KEY} \
+    4096
   chmod 400 ${CA_HOME}/private/${SRV_ROOT_CA_KEY}
 
   echo "   >> (${stepCnt}.2) Generate the self-signed root CA certificate file"
   $whichOpenssl req -config ${srvHostType}_openssl.cnf \
-          -new -x509 -sha256 \
-          -extensions v3_ca \
-          -key ${CA_HOME}/private/${SRV_ROOT_CA_KEY} \
-          -out ${CA_HOME}/certs/${SRV_ROOT_CA_CERT}  \
-          -days ${rootCertExpDays} \
-          -subj ${certSubjLineStr} \
-          -passin pass:${caKeyPasswd}
+    -new -x509 -sha256 \
+    -extensions v3_ca \
+    -key ${CA_HOME}/private/${SRV_ROOT_CA_KEY} \
+    -out ${CA_HOME}/certs/${SRV_ROOT_CA_CERT}  \
+    -days ${rootCertExpDays} \
+    -subj ${certSubjLineStr} \
+    -passin pass:${caKeyPasswd}
   chmod 444 ${CA_HOME}/certs/${SRV_ROOT_CA_CERT}
 fi
 
@@ -222,52 +216,52 @@ stepCnt=$((stepCnt+1))
 echo "== STEP ${stepCnt} :: Generate and sign the Pulsar server Server certificate for all specified Pulsar hosts =="
 
 for srvHost in $(echo $srvHostListStr | sed "s/,/ /g"); do
-   echo "   [Host:  $srvHost]"
-   
-   # replace '.' with '-' in the Pulsar server host name or IP
-   srvHost2=${srvHost//./-}
+  echo "   [Host:  $srvHost]"
+  
+  # replace '.' with '-' in the Pulsar server host name or IP
+  srvHost2=${srvHost//./-}
 
-   PULSAR_SRV_KEY_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.key.pem"
-   PULSAR_SRV_KEY_PK8_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.key-pk8.pem"
-   PULSAR_SRV_CSR_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.csr.pem"
-   PULSAR_SRV_CRT_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.crt.pem"
+  PULSAR_SRV_KEY_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.key.pem"
+  PULSAR_SRV_KEY_PK8_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.key-pk8.pem"
+  PULSAR_SRV_CSR_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.csr.pem"
+  PULSAR_SRV_CRT_NAME="${CA_HOME}/certs/${pulsarClusterName}/${srvHostType}s/${srvHostType}.${srvHost2}.crt.pem"
 
-   echo "   >> (${stepCnt}.1) Generate the PulsarServer Certificate private key file"
-   $whichOpenssl genrsa \
-            -passout pass:${srvKeyPasswd} \
-            -out ${PULSAR_SRV_KEY_NAME} \
-            2048
+  echo "   >> (${stepCnt}.1) Generate the PulsarServer Certificate private key file"
+  $whichOpenssl genrsa \
+    -passout pass:${srvKeyPasswd} \
+    -out ${PULSAR_SRV_KEY_NAME} \
+    2048
 
-   echo
-   echo "   >> (${stepCnt}.2) Convert the private key file to PKCS8 format"
-   $whichOpenssl pkcs8 \
-            -topk8 -nocrypt \
-            -inform PEM -outform PEM \
-            -in ${PULSAR_SRV_KEY_NAME} \
-            -out ${PULSAR_SRV_KEY_PK8_NAME}
+  echo
+  echo "   >> (${stepCnt}.2) Convert the private key file to PKCS8 format"
+  $whichOpenssl pkcs8 \
+    -topk8 -nocrypt \
+    -inform PEM -outform PEM \
+    -in ${PULSAR_SRV_KEY_NAME} \
+    -out ${PULSAR_SRV_KEY_PK8_NAME}
 
-   echo
-   echo "   >> (${stepCnt}.3) Generate the CSR file"
-   $whichOpenssl req \
-            -config ${srvHostType}_openssl.cnf \
-            -new -sha256 \
-            -key ${PULSAR_SRV_KEY_NAME} \
-            -out ${PULSAR_SRV_CSR_NAME} \
-            -subj "${certSubjLineStr}/CN=${srvHost}" \
-            -passin pass:${srvKeyPasswd}
+  echo
+  echo "   >> (${stepCnt}.3) Generate the CSR file"
+  $whichOpenssl req \
+    -config ${srvHostType}_openssl.cnf \
+    -new -sha256 \
+    -key ${PULSAR_SRV_KEY_NAME} \
+    -out ${PULSAR_SRV_CSR_NAME} \
+    -subj "${certSubjLineStr}/CN=${srvHost}" \
+    -passin pass:${srvKeyPasswd}
 
-   echo
-   echo "   >> (${stepCnt}.4) Sign the CSR with the ROOT certificate"
-   $whichOpenssl ca \
-            -config ${srvHostType}_openssl.cnf \
-            -extensions server_cert \
-            -notext -md sha256 -batch \
-            -days ${srvCertExpDays} \
-            -in ${PULSAR_SRV_CSR_NAME} \
-            -out ${PULSAR_SRV_CRT_NAME} \
-            -passin pass:${caKeyPasswd}
-   echo
-   echo
+  echo
+  echo "   >> (${stepCnt}.4) Sign the CSR with the ROOT certificate"
+  $whichOpenssl ca \
+    -config ${srvHostType}_openssl.cnf \
+    -extensions server_cert \
+    -notext -md sha256 -batch \
+    -days ${srvCertExpDays} \
+    -in ${PULSAR_SRV_CSR_NAME} \
+    -out ${PULSAR_SRV_CRT_NAME} \
+    -passin pass:${caKeyPasswd}
+  echo
+  echo
 done
 
 cd ${ORIG_PWD}

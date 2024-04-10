@@ -29,16 +29,10 @@ usage() {
   echo "       -host_type <srv_host_type>: Pulsar server host type that needs to clean up TLS certificates (e.g. broker, functions_worker)"
 }
 
-if [[ $# -eq 0 || $# -gt 4 ]]; then
-   usage
-   echo
-   exit 10
-fi
-
 srvHostType=""
 while [[ "$#" -gt 0 ]]; do
    case $1 in
-      -h) usage; exit 0 ;;
+      -h) usage; echo; exit 10 ;;
       -clst_name) pulsarClusterName="$2"; shift;;
       -host_type) srvHostType="$2"; shift ;;
       *) echo "Unknown parameter passed: $1"; echo; exit 20 ;;

@@ -42,9 +42,8 @@
     - name: Create local server debug folders for all server groups
       include_role: 
         name: local_process/setup_srvDebugDirForGrp
-      when: "groups[srv_component]|length > 0 and hostvars[groups[srv_component][0]]['srv_select_criteria']"
-      with_items: 
-        - "{{ hostvars[groups['pulsarServer'][0]]['srv_component_list'] }}"
+      when: groups[srv_component]|length > 0 and hostvars[groups[srv_component][0]]['srv_select_criteria']
+      loop: "{{ hostvars[groups['pulsarServer'][0]]['srv_component_list'] | flatten(levels=1) }}"
       loop_control:
         loop_var: srv_component
   

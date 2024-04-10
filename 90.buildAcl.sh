@@ -16,7 +16,6 @@
 # limitations under the License.
 ###
 
-
 ###
 # NOTE 1: the default MacOS /bin/bash version is 3.x and doesn't have the feature of 
 #         associative arrary. Homebrew installed bash is under "/usr/local/bin/bash"
@@ -33,9 +32,11 @@
 #
 
 SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/../" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/" &> /dev/null && pwd )
 
 echo
+
+DEBUG=false
 
 bashVerCmdOut=$(bash --version)
 re='[0-9].[0-9].[0-9]'
@@ -47,11 +48,6 @@ if [[ ${bashVerMajor} -lt 4 ]]; then
 	echo
   exit 1
 fi
-
-DEBUG=true
-DFT_ANSI_SSH_PRIV_KEY="</path/to/your/ansible/private/key>"
-DFT_ANSI_SSH_USER="<your_ansible_ssh_user>"
-
 
 # only 1 parameter: the message to print for debug purpose
 debugMsg() {
@@ -101,13 +97,13 @@ fi
 
 while [[ "$#" -gt 0 ]]; do
 	case $1 in
-		-h) usage; exit 0 ;;
+		-h) usage; echo; exit 0 ;;
 		-clstrName) clstrName=$2; shift ;;
 		-aclDef) aclDefFileName=$2; shift ;;
 		-skipRoleJwt) skipRoleJwt=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
 		-ansiPrivKey) ansiPrivKey=$2; shift ;;
 		-ansiSshUser) ansiSshUser=$2; shift ;;
-		*) echo "[ERROR] Unknown parameter passed: $1"; exit 20 ;;
+		*) echo "[ERROR] Unknown parameter passed: $1"; echo; exit 20 ;;
 	esac
 	shift
 done
@@ -120,11 +116,16 @@ mkdir -p "${aclDefExecLogHomeDir}/acl_perm_exec_log"
 aclDefFilePath="${aclRawDefHomeDir}/${clstrName}/${aclDefFileName}"
 
 if [[ -z "${ansiPrivKey// }" ]]; then
-  ansiPrivKey=${DFT_ANSI_SSH_PRIV_KEY}
+  ansiPrivKey=${ANSI_SSH_PRIV_KEY}
+fi
+if [[ -z "${ansiSshUser// }" ]]; then
+  ansiSshUser=${ANSI_SSH_USER}
 fi
 
-if [[ -z "${ansiSshUser// }" ]]; then
-  ansiSshUser=${DFT_ANSI_SSH_USER}
+if [[ -z "${ansiPrivKey// }" || -z "${ansiSshUser// }" ]]; then
+  echo "[ERROR] Missing mandatory SSH key and user name which can be either explicitly provided via '-ansiPrivKey' and '-ansiSshUser' or set in `setenv_automation.sh` file!"
+	echo
+  exit 25
 fi
 
 debugMsg "aclDefFilePath=${aclDefFilePath}"
