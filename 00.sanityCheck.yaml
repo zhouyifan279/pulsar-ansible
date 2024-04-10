@@ -16,7 +16,6 @@
 
 
 ---
-
 ##
 ##  NOTE: For cluster deployment, this step is needed to make sure basic
 ##        pre-conditions are met !
@@ -29,8 +28,13 @@
 - hosts: localhost
   connection: local
   gather_facts: true
-  roles: 
-    - { role: misc/_check_hostInvValidity }
+  # roles: 
+  #   - { role: misc/_check_hostInvValidity }
+  post_tasks:
+    - name: Basic global variables sanity check
+      assert:
+        that: not (enable_kop is defined and enable_kop|bool) or pulsarLS_bin_opt == 'all'
+        fail_msg: "Must set 'pulsarLS_bin_opt' to 'all' when 'kop' is enabled"
 
 ##
 # - When bookkeeper rack-awareness is needed, check the validity of 
@@ -64,7 +68,7 @@
     - name: Check the node count not marked as 'remove' - must be greater than 0
       assert:
         that: (pulsarSrvNodeCntDict[item] > 0 and pulsarSrvNodeCntDict[item] >= pulsarSrvRackCntDict[item]|int)
-        fail_msg: "Effective node count must be greater than 0 and the effective rack count"
+        fail_msg: "Effective node count must be greater than 0 and also greater than the effective rack count"
       with_items:
         - 'zookeeper'
         - 'bookkeeper'

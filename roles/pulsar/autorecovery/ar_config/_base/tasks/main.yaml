@@ -22,13 +22,21 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: "^zkServers=", line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
+    - { regexp: "^metadataServiceUri=", line: "metadataServiceUri={{ hostvars[groups['zookeeper'][0]]['metaSvcZkListStrVar2']|trim }}" }
     - { regexp: "^autoRecoveryDaemonEnabled=", line: "autoRecoveryDaemonEnabled=true" }
 
-- name: Modify (Dedicated) auto recovery config file for misc settings
+- name: Modify (dedicated) auto recovery config file for misc settings
   lineinfile:
     path: "{{ autorecovery_conf_file }}"
     regexp: "^(#\\s?)?{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   with_items:
     - "{{ lookup('dict', misc_autorecovery_config_dict) }}"
+
+- name: Comment out deprecated auto recovery settings
+  replace:
+    path: "{{ autorecovery_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: '(^zkServers=)(.*)$', replace: '#\1 \2' } 

@@ -20,10 +20,6 @@
 - include_role:
     name: pulsar/functions_worker/fwrkr_config/_base
 
-# Functions worker version 2.10 specific configuration
-- include_role:
-    name: pulsar/functions_worker/fwrkr_config/_ver2.10
-
 # Functions worker security related configuration
 - name: ({{ srv_component }}) base configuration (security) setup
   include_role:

@@ -1,3 +1,5 @@
+#! /usr/local/bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -15,8 +17,6 @@
 ###
 
 
-#! /usr/local/bin/bash
-
 ###
 # NOTE 1: the default MacOS /bin/bash version is 3.x and doesn't have the feature of 
 #         associative arrary. Homebrew installed bash is under "/usr/local/bin/bash"
@@ -32,6 +32,11 @@
 #   * use custom-installed bash using homebrew (/usar/local/bin/bash) at version 5.x
 #
 
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/../" &> /dev/null && pwd )
+
+echo
+
 DEBUG=false
 
 bashVerCmdOut=$(bash --version)
@@ -40,22 +45,22 @@ bashVersion=$(echo ${bashVerCmdOut} | grep -o "version ${re}" | grep -o "${re}")
 bashVerMajor=$(echo ${bashVersion} | awk -F'.' '{print $1}' )
 
 if [[ ${bashVerMajor} -lt 4 ]]; then
-    echo "[ERROR] Unspported bash version (${bashVersion}). Must be version 4.x and above!";
-    exit 1
+  echo "[ERROR] Unspported bash version (${bashVersion}). Must be version 4.x and above!";
+  exit 1
 fi
 
 # only 1 parameter: the message to print for debug purpose
 debugMsg() {
-    if [[ "${DEBUG}" == "true" ]]; then
-        if [[ $# -eq 0 ]]; then
-            echo
-        else
-            echo "[Debug] $1"
-        fi
+  if [[ "${DEBUG}" == "true" ]]; then
+    if [[ $# -eq 0 ]]; then
+      echo
+    else
+      echo "[Debug] $1"
     fi
+  fi
 }
 
-clstrToplogyRawDefHomeDir="./cluster_topology"
+clstrToplogyRawDefHomeDir="${ANS_SCRIPT_HOMEDIR}/cluster_topology"
 
 validPulsarSrvHostTypeArr=("zookeeper" "bookkeeper" "broker" "autorecovery" "functions_worker")
 validPulsarSrvHostTypeListStr="${validPulsarSrvHostTypeArr[@]}"
@@ -78,29 +83,22 @@ validDeployStatusListStr="${validDeployStatusArr[@]}"
 debugMsg "validDeployStatusListStr=${validDeployStatusListStr}"
 
 usage() {
-   echo
-   echo "Usage: buildAnsiHostInvFile.sh [-h]"
-   echo "                                -clstrName <cluster_name>"
-   echo "                                -hostDns <whehter_using_dnsname>"
-   echo "       -h : Show usage info"
-   echo "       -clstrName : Pulsar cluster name"
-   echo "       -hostDns   : Whehter using host DNS name (true) or host IP (faslse)"
-   echo
+  echo "Usage: buildAnsiHostInvFile.sh [-h]"
+  echo "                                -clstrName <cluster_name>"
+  echo "                                -hostDns <whehter_using_dnsname>"
+  echo "       -h : Show usage info"
+  echo "       -clstrName : Pulsar cluster name"
+  echo "       -hostDns   : True when host DNS is used; false when host IP is used."
 }
 
-if [[ $# -eq 0 || $# -gt 4 ]]; then
-   usage
-   exit 10
-fi
-
 while [[ "$#" -gt 0 ]]; do
-   case $1 in
-      -h) usage; exit 0 ;;
-      -clstrName) clstrName=$2; shift ;;
-      -hostDns) hostDns=$2; shift ;;
-      *) echo "[ERROR] Unknown parameter passed: $1"; exit 20 ;;
-   esac
-   shift
+  case $1 in
+    -h) usage; echo; exit 10 ;;
+    -clstrName) clstrName=$2; shift ;;
+    -hostDns) hostDns=$2; shift ;;
+    *) echo "[ERROR] Unknown parameter passed: $1"; echo; exit 20 ;;
+  esac
+  shift
 done
 
 clstTopFile="${clstrToplogyRawDefHomeDir}/${clstrName}/clusterDefRaw"
@@ -113,12 +111,14 @@ debugMsg "hostDns=${hostDns}"
 # Check if the corrsponding Pulsar cluster definition file exists
 if ! [[ -f "${clstTopFile}" ]]; then
     echo "[ERROR] The spefified Pulsar cluster doesn't have the corresponding topology definition file: ${clstTopFile}";
+    echo
     exit 30
 fi
 
 re='(true|false)'
 if ! [[ ${hostDns} =~ $re ]]; then
   echo "[ERROR] Invalid value for the input parameter '-hostDns'. Boolean value (true or false) is expected." 
+  echo
   exit 40
 fi
 
@@ -134,68 +134,70 @@ declare -A brokerCPMap
 declare -A deployStatusMap
 
 while read LINE || [ -n "${LINE}" ]; do
-    # Ignore comments
-    case "${LINE}" in \#*) continue ;; esac
-    IFS=',' read -r -a FIELDS <<< "${LINE#/}"
+  # Ignore comments
+  case "${LINE}" in \#*) continue ;; esac
+  IFS=',' read -r -a FIELDS <<< "${LINE#/}"
 
-    if [[ -n "${LINE// }" ]]; then
-        internalIp=${FIELDS[0]}
-        externalIp=${FIELDS[1]}
-        if [[ -z "${externalIp// }" ]]; then
-            externalIp=${internalIp}
-        fi 
-        
-        hostType=${FIELDS[2]}        
-        region=${FIELDS[3]}
-        aZone=${FIELDS[4]}
-        brokerCP=${FIELDS[5]}
-        deployStatus=${FIELDS[6]}
+  if [[ -n "${LINE// }" ]]; then
+    internalIp=${FIELDS[0]}
+    externalIp=${FIELDS[1]}
+    if [[ -z "${externalIp// }" ]]; then
+      externalIp=${internalIp}
+    fi 
+    
+    hostType=${FIELDS[2]}        
+    region=${FIELDS[3]}
+    aZone=${FIELDS[4]}
+    brokerCP=${FIELDS[5]}
+    deployStatus=${FIELDS[6]}
 
-        debugMsg "internalIp=${internalIp}"
-        debugMsg "externalIp=${externalIp}"
-        debugMsg "hostType=${hostType}"
-        debugMsg "region=${region}"
-        debugMsg "aZone=${aZone}"
-        debugMsg "brokerCP=${brokerCP}"
-        debugMsg "deployStatus=${deployStatus}"
-        
-        if [[ -z "${internalIp// }"||  -z "${hostType// }" || -z "${region// }" || -z "${aZone// }" ]]; then
-            echo "[ERROR] Invalid server host defintion line: \"${LINE}\". Mandatory fields must not be empty!" 
-            exit 50
-        fi
-
-        if ! [[ "${validHostTypeArr[*]}" =~ "${hostType// }" ]]; then
-            echo "[ERROR] Invalid server host type at line \"${LINE}\"." 
-            echo "        must be one of the following values: \"${validPulsarSrvHostTypeListStr}\""
-            exit 60
-        fi
-
-        if [[ "${hostType}" =~ "broker" ]]; then
-            if ! [[ -z "${brokerCP// }" || "${brokerCP// }" == "yes" || "${brokerCP// }" == "no" ]]; then
-                echo "[ERROR] Broker contact point filed must be 'yes' or 'no' (line:  \"${LINE}\")." 
-                exit 70
-            elif [[ -z "${brokerCP// }" ]]; then
-                brokerCP="no"
-            fi
-        fi
-
-        if ! [[ -z "${deployStatus// }" || "${validDeployStatusArr[*]}" =~ "${deployStatus}" ]]; then
-            echo "[ERROR] Invalid server deployment status (line: \"${LINE}\"). Must be empty or one of the following: \""${validDeployStatusArr[*]}"\"" 
-            exit 80
-        fi
-
-        internalHostIpMap[${hostType}]+="${internalIp} "
-        externalHostIpMap[${hostType}]+="${externalIp} "
-        regionMap[${hostType}]+="${region} "
-        azMap[${hostType}]+="${aZone} "
-        if [[ "${hostType}" == "broker" ]]; then
-            brokerCPMap[${hostType}]+="${brokerCP} "
-        else
-            brokerCPMap[${hostType}]+=" "
-        fi
-        deployStatusMap[${hostType}]+="${deployStatus} "
+    debugMsg "internalIp=${internalIp}"
+    debugMsg "externalIp=${externalIp}"
+    debugMsg "hostType=${hostType}"
+    debugMsg "region=${region}"
+    debugMsg "aZone=${aZone}"
+    debugMsg "brokerCP=${brokerCP}"
+    debugMsg "deployStatus=${deployStatus}"
+    
+    if [[ -z "${internalIp// }"||  -z "${hostType// }" || -z "${region// }" || -z "${aZone// }" ]]; then
+      echo "[ERROR] Invalid server host defintion line: \"${LINE}\". Mandatory fields must not be empty!" 
+      echo
+      exit 50
     fi
 
+    if ! [[ "${validHostTypeArr[*]}" =~ "${hostType// }" ]]; then
+      echo "[ERROR] Invalid server host type at line \"${LINE}\"." 
+      echo "        must be one of the following values: \"${validPulsarSrvHostTypeListStr}\""
+      echo
+      exit 60
+    fi
+
+    if [[ "${hostType}" =~ "broker" ]]; then
+      if ! [[ -z "${brokerCP// }" || "${brokerCP// }" == "yes" || "${brokerCP// }" == "no" ]]; then
+        echo "[ERROR] Broker contact point filed must be 'yes' or 'no' (line:  \"${LINE}\")." 
+        echo
+        exit 70
+      elif [[ -z "${brokerCP// }" ]]; then
+        brokerCP="no"
+      fi
+    fi
+
+    if ! [[ -z "${deployStatus// }" || "${validDeployStatusArr[*]}" =~ "${deployStatus}" ]]; then
+      echo "[ERROR] Invalid server deployment status (line: \"${LINE}\"). Must be empty or one of the following: \""${validDeployStatusArr[*]}"\"" 
+      exit 80
+    fi
+
+    internalHostIpMap[${hostType}]+="${internalIp} "
+    externalHostIpMap[${hostType}]+="${externalIp} "
+    regionMap[${hostType}]+="${region} "
+    azMap[${hostType}]+="${aZone} "
+    if [[ "${hostType}" == "broker" ]]; then
+      brokerCPMap[${hostType}]+="${brokerCP} "
+    else
+      brokerCPMap[${hostType}]+=" "
+    fi
+    deployStatusMap[${hostType}]+="${deployStatus} "
+  fi
 done < ${clstTopFile}
 
 ##
@@ -204,22 +206,22 @@ done < ${clstTopFile}
 # for val in "${internalHostIpMap[@]}"; do echo $val; done
 
 repeatSpace() {
-    head -c $1 < /dev/zero | tr '\0' ' '
+  head -c $1 < /dev/zero | tr '\0' ' '
 }
 
 # Two parameter: 
 # - 1st parameter is the message to print for execution status purpose
 # - 2nd parameter is the number of the leading spaces
 outputMsg() {
-    if [[ $# -eq 0 || $# -gt 2 ]]; then
-        echo "[Error] Incorrect usage of outputMsg()."
-    else
-        leadingSpaceStr=""
-        if [[ $# -eq 2 && $2 -gt 0 ]]; then
-            leadingSpaceStr=$(repeatSpace $2)            
-        fi
-        echo "$leadingSpaceStr$1" >> ${tgtAnsiHostInvFileName}
+  if [[ $# -eq 0 || $# -gt 2 ]]; then
+    echo "[Error] Incorrect usage of outputMsg()."
+  else
+    leadingSpaceStr=""
+    if [[ $# -eq 2 && $2 -gt 0 ]]; then
+        leadingSpaceStr=$(repeatSpace $2)            
     fi
+    echo "$leadingSpaceStr$1" >> ${tgtAnsiHostInvFileName}
+  fi
 }
 
 
@@ -238,61 +240,61 @@ outputMsg "standAloneClient"
 outputMsg ""
 outputMsg "[pulsarServer:children]"
 for pulsarSrv in "${validPulsarSrvHostTypeArr[@]}"; do
-   outputMsg "${pulsarSrv}"
+  outputMsg "${pulsarSrv}"
 done
 outputMsg ""
 outputMsg "[pulsarServer:vars]"
-outputMsg "srv_component_list=[\"$(echo ${validPulsarSrvHostTypeListStr} | sed -e 's/\s\+/\", \"/g')\"]"
+outputMsg "srv_component_list=[\"$(echo ${validPulsarSrvHostTypeListStr//${IFS:0:1}/\",\"})\"]"
 outputMsg ""
 
 for hostType in "${validHostTypeArr[@]}"; do
-    internalIpSrvTypeList="${internalHostIpMap[${hostType}]}"
-    externalIpSrvTypeList="${externalHostIpMap[${hostType}]}"
-    regionSrvTypeList="${regionMap[${hostType}]}"
-    azSrvTypeList="${azMap[${hostType}]}"
-    brokerCPSrvTypeList="${brokerCPMap[${hostType}]}"
-    deployStatusSrvTypeList="${deployStatusMap[${hostType}]}"
+  internalIpSrvTypeList="${internalHostIpMap[${hostType}]}"
+  externalIpSrvTypeList="${externalHostIpMap[${hostType}]}"
+  regionSrvTypeList="${regionMap[${hostType}]}"
+  azSrvTypeList="${azMap[${hostType}]}"
+  brokerCPSrvTypeList="${brokerCPMap[${hostType}]}"
+  deployStatusSrvTypeList="${deployStatusMap[${hostType}]}"
 
-    IFS=' ' read -r -a internalIpSrvTypeArr <<< "${internalIpSrvTypeList}"
-    IFS=' ' read -r -a externalIpSrvTypeArr <<< "${externalIpSrvTypeList}"
-    IFS=' ' read -r -a regionSrvTypeArr <<< "${regionSrvTypeList}"
-    IFS=' ' read -r -a azSrvTypeArr <<< "${azSrvTypeList}"
-    IFS=' ' read -r -a brokerCPSrvTypeArr <<< "${brokerCPSrvTypeList}"
-    IFS=' ' read -r -a deployStatusSrvTypeArr <<< "${deployStatusSrvTypeList}"
+  IFS=' ' read -r -a internalIpSrvTypeArr <<< "${internalIpSrvTypeList}"
+  IFS=' ' read -r -a externalIpSrvTypeArr <<< "${externalIpSrvTypeList}"
+  IFS=' ' read -r -a regionSrvTypeArr <<< "${regionSrvTypeList}"
+  IFS=' ' read -r -a azSrvTypeArr <<< "${azSrvTypeList}"
+  IFS=' ' read -r -a brokerCPSrvTypeArr <<< "${brokerCPSrvTypeList}"
+  IFS=' ' read -r -a deployStatusSrvTypeArr <<< "${deployStatusSrvTypeList}"
+
+  if [[ "${validPulsarClntHostTypeListStr}" =~ "${hostType}" ]]; then
+    outputMsg "[${hostType}:vars]"
+    outputMsg "srv_component=\"$(echo ${hostType})\""
+
+    if [[ "${validPulsarSrvHostTypeListStr}" =~ "${hostType}" ]]; then
+      if [[ "${hostType}" == "bookkeeper" ]]; then
+        srv_component_internal="bookie"
+      elif [[ "${hostType}" == "functions_worker" ]]; then
+        srv_component_internal="functions-worker"
+      else
+        srv_component_internal="${hostType}"
+      fi
+      outputMsg "srv_component_internal=\"$(echo ${srv_component_internal})\""
+    fi
+  fi
+  outputMsg "[${hostType}]"
+
+  for index in "${!internalIpSrvTypeArr[@]}"; do
+    hostInvLine="${externalIpSrvTypeArr[$index]} private_ip=${internalIpSrvTypeArr[$index]}"
+    hostInvLine="${hostInvLine} region=${regionSrvTypeArr[$index]}"
+    hostInvLine="${hostInvLine} az=${azSrvTypeArr[$index]}"
+    hostInvLine="${hostInvLine} rack_name=${regionSrvTypeArr[$index]}-${azSrvTypeArr[$index]}"
+
+    if [[ "${hostType}" == "broker" ]]; then
+      hostInvLine="${hostInvLine} contact_point=${brokerCPSrvTypeArr[$index]}"
+    fi
 
     if [[ "${validPulsarClntHostTypeListStr}" =~ "${hostType}" ]]; then
-        outputMsg "[${hostType}:vars]"
-        outputMsg "srv_component=\"$(echo ${hostType})\""
+      hostInvLine="${hostInvLine} deploy_status=${deployStatusSrvTypeArr[$index]}"
+    fi 
 
-        if [[ "${validPulsarSrvHostTypeListStr}" =~ "${hostType}" ]]; then
-            if [[ "${hostType}" == "bookkeeper" ]]; then
-                srv_component_internal="bookie"
-            elif [[ "${hostType}" == "functions_worker" ]]; then
-                srv_component_internal="functions-worker"
-            else
-                srv_component_internal="${hostType}"
-            fi
-            outputMsg "srv_component_internal=\"$(echo ${srv_component_internal})\""
-        fi
-    fi
-    outputMsg "[${hostType}]"
+    outputMsg "$hostInvLine"
+  done
 
-    for index in "${!internalIpSrvTypeArr[@]}"; do
-        hostInvLine="${externalIpSrvTypeArr[$index]} private_ip=${internalIpSrvTypeArr[$index]}"
-        hostInvLine="${hostInvLine} region=${regionSrvTypeArr[$index]}"
-        hostInvLine="${hostInvLine} az=${azSrvTypeArr[$index]}"
-        hostInvLine="${hostInvLine} rack_name=${regionSrvTypeArr[$index]}-${azSrvTypeArr[$index]}"
-
-        if [[ "${hostType}" == "broker" ]]; then
-            hostInvLine="${hostInvLine} contact_point=${brokerCPSrvTypeArr[$index]}"
-        fi
-
-        if [[ "${validPulsarClntHostTypeListStr}" =~ "${hostType}" ]]; then
-            hostInvLine="${hostInvLine} deploy_status=${deployStatusSrvTypeArr[$index]}"
-        fi 
-
-        outputMsg "$hostInvLine"
-    done
-
-    outputMsg ""
+  outputMsg ""
 done

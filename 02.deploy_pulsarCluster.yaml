@@ -40,6 +40,9 @@
   roles: 
     # Set global variables to be used in other tasks/roles
     - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
+    # Make sure proper Java version are installed
+    # - for Pulsar version 3.0.0, java version must be 17 or higher
+    - { role: misc/_check_pulsar_java_version, when: srv_select_criteria }
     # Prepare for Pulsar binary installation, including
     # - create Pulsar user and group
     # - prepare binary folder structure
@@ -50,6 +53,7 @@
     # Install Pulsar binary
     # - "keep_newer_files: yes" means not to overwrite existing Pulsar files
     - { role: pulsar/common/pulsar_instBinary, keep_newer_files: yes, when: srv_select_criteria }
+
     
 - hosts: pulsarServer
   any_errors_fatal: true

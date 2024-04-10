@@ -1,0 +1,50 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+# Ubuntu/APT installation
+- name: Get the current nodejs server version if it is already installed
+  shell: "node -v 2>&1"
+  ignore_errors: yes
+  register: "_nodejs_ver"
+- debug: msg="_nodejs_ver - {{ _nodejs_ver }}"
+  when: show_debug_msg|bool
+
+- name: Check whether or not we need to install a newer version nodejs
+  set_fact:
+    install_nodejs: "{{ force_nodejs_install|bool or _nodejs_ver.rc|int != 0 or _nodejs_ver.stdout.split('v')[1] is version(tgt_nodejs_ver, '<') }}"
+- debug: msg="install_nodejs - {{ install_nodejs }}"
+  when: show_debug_msg|bool
+
+- name: Download Node.js setup script
+  get_url: 
+    url: "https://deb.nodesource.com/setup_{{ tgt_nodejs_ver_major }}.x"
+    dest: /tmp/setup_nodejs_{{ tgt_nodejs_ver_major }}
+    mode: "{{ file_permission_mode }}"
+  when: install_nodejs|bool
+
+- name: Setup Node.js
+  command: /tmp/setup_nodejs_{{ tgt_nodejs_ver_major }}
+  when: install_nodejs|bool
+
+- name: Install nodejs   
+  apt: 
+    # name: "nodejs={{ tgt_nodejs_ver }}-1nodesource1"
+    name: "nodejs"
+    update_cache: yes
+    state: present
+  when: install_nodejs|bool

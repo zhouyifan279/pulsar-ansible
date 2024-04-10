@@ -22,7 +22,6 @@
 broker_conf_file: "{{ tgt_pulsar_inst_dir }}/conf/broker.conf"
 broker_func_worker_file: "{{ tgt_pulsar_inst_dir }}/conf/functions_worker.yml"
 pulsar_mem_broker: "{% if prod_jvm_setting|bool %}-Xms12g -Xmx12g -XX:MaxDirectMemorySize=12g{% else %}-Xms1g -Xmx1g{% endif %}"
-#pulsar_mem_broker: "-Xms5g -Xmx5g -XX:MaxDirectMemorySize=5g"
 
 broker_svc_port: 6650
 broker_svc_port_tls: 6651
@@ -30,7 +29,7 @@ broker_svc_port_tls: 6651
 web_svc_port: 8080
 web_svc_port_tls: 8443
 
-# extra JVM options to start bookkeepers
+# extra JVM options to start brokers
 component_pulsar_extra_opts: ""
 component_pulsar_gc: "-XX:HeapDumpPath={{ tgt_pulsar_log_homedir }}/broker"
 broker_jvm_options: > 
@@ -52,7 +51,7 @@ enable_transaction: true
 enable_srvside_msg_filtering: true
 tgt_msg_filter_package_dir: "{{ tgt_pulsar_inst_dir }}/filters"
 
-msg_filter_package_version: 2.4.11
+msg_filter_package_version: 3.2.1
 msg_filter_package_name: "pulsar-jms-{{ msg_filter_package_version }}-nar.nar"
 
 msg_filter_pkg_download_url_base: "https://github.com/datastax/pulsar-jms/releases/download"
@@ -104,17 +103,18 @@ msg_filter_pkg_download_url: "{{ msg_filter_pkg_download_url_base }}/{{ msg_filt
 #     change the boolean value as starting with Uppercase (e.g. True or False)
 # 
 misc_broker_config_dict: {
-  forceDeleteTenantAllowed: 'false'             # default false
-  , forceDeleteNamespaceAllowed: 'false'        # default false
-  , allowAutoTopicCreation: 'false'             # default false
-  , allowAutoSubscriptionCreation: 'false'      # default false
+  forceDeleteTenantAllowed: 'true'             # default false
+  , forceDeleteNamespaceAllowed: 'true'        # default false
+  , allowAutoTopicCreation: 'true'             # default false
+  , allowAutoSubscriptionCreation: 'true'      # default false
   , brokerDeleteInactiveTopicsEnabled: 'false'  # default true 
   , topicFencingTimeoutSeconds: '5'             # default 0
   , webSocketServiceEnabled: 'true'             # default false
   , bookkeeper_opportunisticStriping: 'true'    # default false
   , systemTopicEnabled: 'true'
   , topicLevelPoliciesEnabled: 'true'           # default false
-  
+
+  , managedLedgerCursorBackloggedThreshold: 2147483647 #10000  
   , managedLedgerCacheEvictionTimeThresholdMillis: 10000 #2000
   , managedLedgerCacheEvictionFrequency: 0.2    # 1 eviction for 5 seconds.
   , exposeConsumerLevelMetricsInPrometheus: 'false'
@@ -146,14 +146,17 @@ misc_broker_config_dict: {
   , managedLedgerMaxReadsInFlightSizeInMB: 100
 
   # Use the cache for tailing reads only for subscriptions that are not backlogged
-  , cacheEvictionByMarkDeletedPosition: false
+  , cacheEvictionByMarkDeletedPosition: false #'true'
 
   # configuration for caching data read by backlogged cursors
-  , managedLedgerMinimumBacklogCursorsForCaching: 4
-  , managedLedgerMinimumBacklogEntriesForCaching: 1
-  , managedLedgerMaxBacklogBetweenCursorsForCaching: 1000000
+  , managedLedgerMinimumBacklogCursorsForCaching: 3 #4
+  , managedLedgerMinimumBacklogEntriesForCaching: 1 #1000
+  , managedLedgerMaxBacklogBetweenCursorsForCaching: 1000000 #20000
   ## settings for disabling the above feature of catch-up readcaching
   #, managedLedgerMinimumBacklogCursorsForCaching: 0
   #, managedLedgerMinimumBacklogEntriesForCaching: 1000
   #, managedLedgerMaxBacklogBetweenCursorsForCaching: 1000
+  
+  , allowAutoTopicCreationType: "partitioned"
+  , brokerEntryMetadataInterceptors: "org.apache.pulsar.common.intercept.AppendIndexMetadataInterceptor"
 }

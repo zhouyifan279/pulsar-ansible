@@ -1,0 +1,30 @@
+###
+# Copyright DataStax, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###
+
+
+---
+# AdminConsole base configuration (non-security)
+- include_role:
+    name: adminconsole/ac_config/_base
+
+# AdminConsole security related configuration
+- include_role:
+    name: adminconsole/ac_config/_security
+  vars:
+    ac_https_cert_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.crt.pem"
+    ac_https_key_file: "{{ tgt_adminConsole_sec_dir }}/tls/server/adminConsole.{{ (hostvars[groups['adminConsole'][0]]['private_ip'])|trim|replace('.','-') }}.key-pk8.pem"
+    ac_https_public_ca_file: "{{ tgt_adminConsole_sec_dir }}/tls/rootca/{{ public_cacert_name }}"
+  when: enable_ac_security is defined and enable_ac_security|bool

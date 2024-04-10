@@ -20,7 +20,7 @@
   - [4.9. 21.restart\_pulsarCluster\_with\_configChg.yaml](#49-21restart_pulsarcluster_with_configchgyaml)
   - [4.10. 22.update\_pulsarCluster\_version.yaml](#410-22update_pulsarcluster_versionyaml)
   - [4.11. 23.manual\_autorecovery\_op.yaml](#411-23manual_autorecovery_opyaml)
-  - [4.12. 31.shutdown\_pulsarCluster.yaml and 31.start\_pulsarCluster.yaml](#412-31shutdown_pulsarclusteryaml-and-31start_pulsarclusteryaml)
+  - [4.12. 30.shutdown\_pulsarCluster.yaml and 31.start\_pulsarCluster.yaml](#412-30shutdown_pulsarclusteryaml-and-31start_pulsarclusteryaml)
   - [4.13. 32.shutdown\_adminConsole.yaml and 33.start\_adminConsole.yaml](#413-32shutdown_adminconsoleyaml-and-33start_adminconsoleyaml)
   - [4.14. 34.shutdown\_heartBeat.yaml and 35.start\_heartBeat.yaml](#414-34shutdown_heartbeatyaml-and-35start_heartbeatyaml)
   - [4.15. 70.collect\_srvStatus\_with\_kill.yaml](#415-70collect_srvstatus_with_killyaml)
@@ -147,8 +147,8 @@ $ bash/buildAnsiHostInvFile.sh -clstrName <cluster_name> -hostDns [true|false]
  
 1) The specified cluster name must match a subfolder name of the ***cluster_topology*** folder.
 2) If the server IP is used in the topology raw definition file,
-  1) "-hostDns" parameter must have value 'false'.
-  2) Otherwise, it must have value 'true'.
+   *  "-hostDns" parameter must have value 'false'.
+   * Otherwise, it must have value 'true'.
  
 The automatically generated host inventory file name has the following naming convention:
 **hosts_<cluster_name>.ini**
@@ -316,7 +316,7 @@ or
  
 ## 4.9. 21.restart_pulsarCluster_with_configChg.yaml
  
-This playbook will update Pulsar server configuration settings and do a rolling restart. However, it can also be used for rolling restart only if there is configuration change.
+This playbook will update Pulsar server configuration settings and do a rolling restart. However, it can also be used for rolling restart only if there is no configuration change.
  
 **NOTE**: This playbook has one runtime variable, **with_cfg_upd** (possible values: true or false), that controls whether Pulsar server configuration update is needed.
 ```
@@ -356,7 +356,7 @@ pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
  
 This playbook is used to manually enable or disable the autorecovery process. Generally speaking when a Pulsar cluster is in maintenance mode, it is recommended to disable autorecovery before the maintenance and enable it after.
  
-## 4.12. 31.shutdown_pulsarCluster.yaml and 31.start_pulsarCluster.yaml
+## 4.12. 30.shutdown_pulsarCluster.yaml and 31.start_pulsarCluster.yaml
  
 As the names suggest, these 2 playbooks are used to shut down and start the Pulsar server cluster.
  

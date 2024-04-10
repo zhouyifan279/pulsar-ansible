@@ -16,7 +16,6 @@
 
 
 ---
-
 ##
 ##  NOTE: DO not change the sequence of the tasks!
 ##        Make sure "02.deploy_pulsarCluster.yaml" playbook has been executed beforehand!
@@ -31,7 +30,7 @@
   become_method: sudo
   roles: 
     # Set global variables to be used in other tasks/roles
-    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'all' }
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'svcList' }
 
 #########################
 # HeartBeat Related

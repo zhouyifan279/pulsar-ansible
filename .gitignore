@@ -13,5 +13,6 @@ permission_matrix/MyCluster1
 cluster_topology/MyCluster1
 hosts_*.ini
 automation_exec_logs/*
-bash/buildAnsiHostInvFile.sh.bkup_share_host
+bash/buildAnsiHostInvFile.sh.bkup*
 .vscode/ltex.dictionary.en-US.txt
+staging/*

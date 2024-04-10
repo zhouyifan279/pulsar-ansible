@@ -1,3 +1,5 @@
+#! /bin/bash
+
 ###
 # Copyright DataStax, Inc.
 #
@@ -14,12 +16,7 @@
 # limitations under the License.
 ###
 
-
-#! /bin/bash
-
-DEBUG=false
-
-#
+##
 # NOTE: this script is used for setting up geo-replication for 2 Pulsar clusters with security 
 #       features enabled: JWT token authentication and TLS encryption. 
 #
@@ -27,13 +24,17 @@ DEBUG=false
 #       1) 2 Pulsar clusters with security eabled must be deployed using "pulsar-ansible" playbooks
 #       2) The security files (JWT token and TLS certificate files) must be available locally on the
 #          Ansile controller machine (e.g. don't be deleted explicitly)
-#
-#
+##
 
+SCRIPT_FOLDER=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ANS_SCRIPT_HOMEDIR=$( cd -- "${SCRIPT_FOLDER}/" &> /dev/null && pwd )
+
+echo
+
+DEBUG=false
 
 usage() {
-   echo
-   echo "Usage: 99.setup_georep_2region.sh [-h]"
+   echo "Usage: 91.setup_georep_2region.sh [-h]"
    echo "                                  -ansiHostInvent1 <host_inventory_file1>"
    echo "                                  -ansiPrivKey1 <ansi_private_key1>"
    echo "                                  -ansiSshUser1 <ansi_ssh_user1>"
@@ -57,46 +58,40 @@ usage() {
    echo "       [-forceClstrUpdate] : Whether to force updating existing cluster definition (default: false)!"
    echo "       -tntNsList          : Comma separated tenant and namespace list (e.g. tnt1/ns1,tnt2/ns2,...)"
    echo "       [-forceTntNsUpdate] : Whether to force updating existing tenant and namespace definition (default: false)!"
-   echo
 }
 
 # only 1 parameter: the message to print for debug purpose
 debugMsg() {
-    if [[ "${DEBUG}" == "true" ]]; then
-        if [[ $# -eq 0 ]]; then
-            echo
-        else
-            echo "[Debug] $1"
-        fi
+  if [[ "${DEBUG}" == "true" ]]; then
+    if [[ $# -eq 0 ]]; then
+      echo
+    else
+      echo "[Debug] $1"
     fi
+  fi
 }
-
-if [[ $# -eq 0 || $# -gt 22 ]]; then
-   usage
-   exit 10
-fi
 
 skipSrvFileFetch=false
 skipClstrSetup=false
 forceClstrUpdate=false
 forceTntNsUpdate=false
 while [[ "$#" -gt 0 ]]; do
-   case $1 in
-      -h) usage; exit 0 ;;
-      -ansiHostInvent1) ansiHostInvent1=$2; shift ;;
-      -ansiPrivKey1) ansiPrivKey1=$2; shift ;;
-      -ansiSshUser1) ansiSshUser1=$2; shift ;;
-      -ansiHostInvent2) ansiHostInvent2=$2; shift ;;
-      -ansiPrivKey2) ansiPrivKey2=$2; shift ;;
-      -ansiSshUser2) ansiSshUser2=$2; shift ;;
-      -skipSrvFileFetch) skipSrvFileFetch=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
-      -skipClstrSetup) skipClstrSetup=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
-      -forceClstrUpdate) forceClstrUpdate=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
-      -tntNsList) tntNsList=$2; shift ;;
-      -forceTntNsUpdate) forceTntNsUpdate=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
-      *) echo "[ERROR] Unknown parameter passed: $1"; exit 20 ;;
-   esac
-   shift
+  case $1 in
+    -h) usage; echo; exit 10 ;;
+    -ansiHostInvent1) ansiHostInvent1=$2; shift ;;
+    -ansiPrivKey1) ansiPrivKey1=$2; shift ;;
+    -ansiSshUser1) ansiSshUser1=$2; shift ;;
+    -ansiHostInvent2) ansiHostInvent2=$2; shift ;;
+    -ansiPrivKey2) ansiPrivKey2=$2; shift ;;
+    -ansiSshUser2) ansiSshUser2=$2; shift ;;
+    -skipSrvFileFetch) skipSrvFileFetch=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
+    -skipClstrSetup) skipClstrSetup=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
+    -forceClstrUpdate) forceClstrUpdate=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
+    -tntNsList) tntNsList=$2; shift ;;
+    -forceTntNsUpdate) forceTntNsUpdate=$(echo $2 | tr '[:upper:]' '[:lower:]'); shift ;;
+    *) echo "[ERROR] Unknown parameter passed: $1"; echo; exit 20 ;;
+  esac
+  shift
 done
 
 debugMsg "ansiHostInvent1=${ansiHostInvent1}"

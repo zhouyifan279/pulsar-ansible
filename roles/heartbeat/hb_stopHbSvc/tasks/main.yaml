@@ -18,9 +18,9 @@
 ---
 - name: Kill the HeartBeat application server process(es)
   include_role:
-    role: misc/_kill_svc_pids
+    role: misc/_kill_svc_pname
   vars:
-    srv_process_name: "pulsar-heartbeat"
+    srv_process_name: "pulsar-heart"
 
 - name: Wait until HeartBeat application server is gone
   wait_for:

@@ -22,7 +22,7 @@
   become_method: sudo
   roles: 
     # Enable "srv_select_criteria" variable for server selection
-    - { role: pulsar/common/pulsar_setGlobalVars }
+    - { role: pulsar/common/pulsar_setGlobalVars, varList: 'svcList' }
 
 - hosts: pulsarServer
   any_errors_fatal: true
