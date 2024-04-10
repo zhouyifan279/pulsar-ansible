@@ -16,3 +16,4 @@ automation_exec_logs/*
 bash/buildAnsiHostInvFile.sh.bkup*
 .vscode/*
 staging/*
+setenv_automation.sh.local
