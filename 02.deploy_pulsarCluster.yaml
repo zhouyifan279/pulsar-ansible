@@ -76,7 +76,7 @@
     - name: Copy the nar file needed for broker side message filtering
       include_role:
         name: pulsar/broker/brkr_deploy_msgFilterPkg
-      when: srv_select_criteria and enable_srvside_msg_filtering|bool and pulsarLS_bin_opt=="core"
+      when: srv_select_criteria and enable_srvside_msg_filtering|bool and pulsarLS_bin_opt!="core"
 
 
 #########################
