@@ -50,6 +50,8 @@ enable_transaction: true
 #
 enable_srvside_msg_filtering: true
 tgt_msg_filter_package_dir: "{{ tgt_pulsar_inst_dir }}/filters"
+enable_interceptor_on_write: true
+tgt_interceptor_dir: "{{ tgt_pulsar_inst_dir }}/interceptors"
 
 msg_filter_package_version: 4.1.1-alpha
 msg_filter_package_name: "pulsar-jms-{{ msg_filter_package_version }}-nar.nar"

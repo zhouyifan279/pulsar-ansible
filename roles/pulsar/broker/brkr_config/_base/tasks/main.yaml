@@ -73,6 +73,16 @@
     - { regexp: "^entryFiltersDirectory=", line: "entryFiltersDirectory={{ tgt_msg_filter_package_dir }}" }
   when: enable_srvside_msg_filtering|bool
 
+- name: Modify broker side message interceptor config settings, if needed
+  lineinfile:
+    path: "{{ broker_conf_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: "^brokerInterceptors=", line: "brokerInterceptors=jms-publish-filters" }
+    - { regexp: "^brokerInterceptorsDirectory=", line: "brokerInterceptorsDirectory={{ tgt_interceptor_dir }}" }
+  when: enable_srvside_msg_filtering|bool and enable_interceptor_on_write|bool
+
 - name: Modify Pulsar broker config file for misc settings
   lineinfile:
     path: "{{ broker_conf_file }}"

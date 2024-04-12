@@ -31,7 +31,7 @@
     path: "{{ tgt_msg_filter_package_dir }}/{{ msg_filter_package_name }}"
   register: msg_filter_pkg_stat
 
-- name: Check if the message filter packate already exists on the target host. If not, copy it from local host when 'internet_download' is false
+- name: Check if the message filter package already exists on the target host. If not, copy it from local host when 'internet_download' is false
   copy:
     src: "{{ local_bin_homedir }}/{{ msg_filter_package_name }}"
     dest: "{{ tgt_msg_filter_package_dir }}/{{ msg_filter_package_name }}"
