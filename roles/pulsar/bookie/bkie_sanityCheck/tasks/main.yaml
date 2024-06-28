@@ -20,7 +20,7 @@
   run_once: true
   become: false
   become_method: sudo
-  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/bookkeeper shell bookiesanity > /home/{{ ansible_ssh_user }}/bookie_sanity_check.result"
+  shell: "{% if sudo_needed|bool %}sudo -u {{ pulsar_user }} {% endif %}{{ srv_options|trim }} {{ tgt_pulsar_inst_dir }}/bin/bookkeeper shell bookiesanity > $HOME/bookie_sanity_check.result"
   register: bkie_shell_sanity_cmdcat
 - debug: msg="bkie_shell_sanity_cmdcat - {{ bkie_shell_sanity_cmdcat }}"
   when: show_debug_msg|bool

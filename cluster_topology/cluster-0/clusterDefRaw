@@ -1,0 +1,26 @@
+# Pulsar cluster raw definition file
+# -----------------------------------
+# > each line represents a server host in this cluster
+# > each server host line has the following fields
+#    0) internal facing server ip or hostname
+#    1) external facing server ip or hostname
+#       * if empty, the same as the internal facing ip or hostname
+#    2) server type: what purpose of this host machine in the Pulsar cluster
+#       in theory, one host machine can be used for multiple purposes (esp for lower environment)
+#       * possible values: zookeeper, bookkeeper, broker, functions_worker, autorecovery, standAloneClient, adminConsole, heartBeat
+#    3) region name
+#    4) availability zone name
+#    5) [broker only] contact point (yes/no): whether to be used as the contact point for a Pulsar client
+#    6) host machine deployment status. Possible values: 
+#       - (empty value/not set): node either already in the cluster or to be added 
+#       - 'remove': remove node from the cluster
+# -----------------------------------
+192.168.11.132,,zookeeper,region1,az1,,
+192.168.11.5,,zookeeper,region1,az2,,
+192.168.11.77,,zookeeper,region1,az3,,
+192.168.11.61,,bookkeeper,region1,az1,,
+192.168.11.224,,bookkeeper,region1,az2,,
+192.168.11.40,,bookkeeper,region1,az3,,
+192.168.11.61,,broker,region1,az1,yes,
+192.168.11.224,,broker,region1,az2,,
+192.168.11.40,,broker,region1,az3,,

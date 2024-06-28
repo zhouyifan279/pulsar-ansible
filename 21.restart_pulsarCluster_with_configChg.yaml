@@ -162,7 +162,8 @@
   serial: "{{ srv_restart_parallelism|default(1) }}"
   vars:
     srvStarted: true
-    srv_component: 'bookie'
+    srv_component: 'bookkeeper'
+    srv_component_internal: 'bookie'
     srv_ports: ["{{ bookie_listening_port }}"]
     bkup_subfolder_name: "ConfigUpdate-{{ ansible_date_time.epoch }}"
   roles:

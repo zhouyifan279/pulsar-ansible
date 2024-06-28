@@ -115,6 +115,8 @@
   become_method: sudo
   vars:
     srvStarted: true
+    srv_component: bookkeeper
+    srv_component_internal: bookie
     srv_ports: ["{{ bookie_listening_port }}"]
   roles: 
     # Config bookkeeper (bookkeeper.conf)

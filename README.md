@@ -610,7 +610,7 @@ Some JVM settings, including the gclog, are common to all Pulsar components and 
 common_jvm_settings: |
  PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
  PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
- PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
+ PULSAR_GC_LOG="-Xloggc:{{ tgt_pulsar_gc_log_homedir }}/{{ srv_component }}_gc_%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=20M"
 ```
  
 Other than the above common settings, each server component also has its own JVM related settings that are set in component level variables in *group_vars/<server_component>/all* file. For example, other than the common JVM settings as above, a broker may have its own JVM heap and direct memory size settings, heap dump directory, broker log directory, etc, as below:

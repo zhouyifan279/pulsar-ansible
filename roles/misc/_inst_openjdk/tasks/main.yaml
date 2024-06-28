@@ -46,3 +46,15 @@
   tags:
     - jdk_install
   when: ansible_facts['distribution'] == "RedHat"
+
+# Debian installation
+- name: Install OpenJDK Java on Debian
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - openjdk-{{ openjdk_ver }}-jdk
+  tags:
+    - jdk_install
+  when: ansible_facts['distribution'] == "Debian"

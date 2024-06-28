@@ -39,6 +39,7 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
+    - { regexp: "^advertisedAddress=", line: "advertisedAddress={{ private_ip }}" }
     - { regexp: "^zkServers=", line: "zkServers={{ hostvars[groups['zookeeper'][0]]['zkListStrVar']|trim }}" }
     - { regexp: "^bookiePort=", line: "bookiePort={{ bookie_listening_port }}" }
     - { regexp: "^httpServerPort=", line: "httpServerPort={{ bookie_stats_port }}" }

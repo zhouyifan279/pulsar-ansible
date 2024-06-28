@@ -50,18 +50,18 @@ ssh_user_in_pulsar_group: true
 # -------------------------------------------
 #
 install_jdk: false
-openjdk_ver: 11
+openjdk_ver: 8
 
 # - DataStax LunaStreaming release
 pulsarLS_ver_main: "2.10"
 # pulsarLS_ver_secondary: "1.7"
-pulsarLS_ver_secondary: "2.2"
+pulsarLS_ver_secondary: "4"
 pulsarLS_ver_signifant: "{{ pulsarLS_ver_main.split('.')[0] }}.{{ pulsarLS_ver_main.split('.')[1] }}"
 pulsarLS_ver: "{{ pulsarLS_ver_main }}.{{ pulsarLS_ver_secondary }}"
 # valid luna streaming binary options: "core" (Pulsar core), "" (base), "all (including all packages, I/O conenctors and message filters)"
 # use "" (base) as the default 
 pulsarLS_bin_opt: ""
-pulsarLS_bin_name: "lunastreaming-{% if pulsarLS_bin_opt is defined and pulsarLS_bin_opt != '' %}{{ pulsarLS_bin_opt }}-{% endif %}{{ pulsarLS_ver }}-bin.tar.gz"
+pulsarLS_bin_name: "apache-pulsar-{{ pulsarLS_ver }}-bin.tar.gz"
 
 
 #
@@ -78,7 +78,7 @@ pulsarLS_bin_download_url: "{{ pulsarLS_download_url_base }}/ls{{ pulsarLS_ver_m
 # -------------------------------------------
 #
 # - Local fodler that has 
-local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
+local_bin_homedir: "~/"
 
 
 #
@@ -88,13 +88,13 @@ local_bin_homedir: "~/DataStax/pulsar_bin/releases/luna_streaming"
 # - Target package and binary directories
 tgt_pkg_homedir: /opt/packages
 tgt_pkg_pulsar_dir: "{{ tgt_pkg_homedir }}/pulsar"
-tgt_pulsar_inst_dir: /opt/pulsar
+tgt_pulsar_inst_dir: /cloud/program/VCS/pulsar
 
 # - Target config backup directory
-tgt_pulsar_conf_bkup_homedir: "/opt/pulsar_cfgbkup"
+tgt_pulsar_conf_bkup_homedir: "/cloud/program/VCS/pulsar_cfgbkup"
 
 # - Target log info directory (Pulsar server log, GC log, breadcrumb file)
-tgt_log_homedir: /var/log/pulsar
+tgt_log_homedir: /log/VCS/pulsar
 
 # - Target log directory
 tgt_pulsar_log_homedir: "{% if customize_logdir is defined and customize_logdir|bool %}{{ tgt_log_homedir }}{% else %}{{ tgt_pulsar_inst_dir }}/logs{% endif %}"
@@ -139,7 +139,7 @@ minNumRackPerWQ: 2            # default 2
 #
 # deploy_functions_worker: "none"
 # deploy_functions_worker: "shared"
-deploy_functions_worker: "dedicated"
+deploy_functions_worker: "none"
 
 
 #
@@ -171,7 +171,7 @@ local_collected_srvfiles_homedir: collected_srv_files
 # - dedicated  : dedicated auto-recovery daemon process on [sep]arated hosts from bookie hosts
 #   (NOTE: Does NOT support having auto-recovery and bookkeeper are separate processes sharing the same host)
 # -------------------------------------------
-autorecovery_option: "integrated"
+autorecovery_option: "disabled"
 # autorecovery_option: "dedicated"
 
 
@@ -180,11 +180,12 @@ autorecovery_option: "integrated"
 # -------------------------------------------
 #
 # commong JVM settings that applies to all Pulsar server components
-prod_jvm_setting: true
+prod_jvm_setting: false
 common_jvm_settings: |
+  JAVA_HOME=/cloud/env/jdk/jdk1.8.0_202
   PULSAR_EXTRA_OPTS="-XX:+PerfDisableSharedMem {{ component_pulsar_extra_opts | default('') }}"
   PULSAR_GC="-XX:+UseG1GC -XX:MaxGCPauseMillis=10 -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError {{ component_pulsar_gc | default('') }}"
-  PULSAR_GC_LOG="-Xlog:gc*,safepoint:{{ tgt_pulsar_gc_log_homedir }}/pulsar_gc_%p.log:time,uptime,tags:filecount=10,filesize=20M"
+  PULSAR_GC_LOG="-Xloggc:{{ tgt_pulsar_gc_log_homedir }}/{{ srv_component }}_gc_%p.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=20M"
 
 # Use which version as the zookeeper metadata server. Valid opions: 
 # true:  use the (default) format for broker
@@ -238,9 +239,9 @@ force_tgt_tls_certs: false
 # >>> Broker related security: JWT token and in-transit TLS encryption
 #
 # - Wether or not to enable Pulsar JWT authentication and authorization
-enable_brkr_authNZ: true
+enable_brkr_authNZ: false
 # - Whether or not to enable Pulsar In-Transit TLS encryption
-enable_brkr_tls: true
+enable_brkr_tls: false
 
 enable_brkr_security: "{{ (enable_brkr_authNZ is defined and enable_brkr_authNZ|bool) or (enable_brkr_tls is defined and enable_brkr_tls|bool) }}"
 
@@ -300,7 +301,7 @@ fwrkr_key_password: "MyFwrkrSrvCertPass"
 #
 #
 # - Wether or not to enable AdminConsole HTTPS
-enable_ac_https: true
+enable_ac_https: false
 # - Whether or not to skip generating Pulsar functions worker TLS certificate files on the local host
 skip_ac_tls_certs_generatation: false
 # - Whehter or not to force replacing the existing AdminConsole server side TLS certificate files
